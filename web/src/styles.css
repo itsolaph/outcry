@@ -3,7 +3,7 @@
  * nav: rebuilt, ink on lino, wordmark, Lobby, How it works, guest key, wallet menu · signature: the pit, a stepped octagon with jacket badges, trade arcs, the bell clock and the reveal flip · states: skeleton, loading, empty, watching, queued, seated, dealing, trading, settled, rejected, disabled, wallet open
  * axes: light/grotesk-wide/four-jacket · posture: quiet floor, loud pit · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: E, the pit has to carry live quotes, arcs and four flipped cards on a 390px phone, so every pit element is laid out in drawing units and collision-checked (slips skip any spot over a badge, tab or the clock; phones keep three arcs and one slip), status messages dock in a reserved header slot, and a phone bar keeps order, held, chips and clock in view while the book scrolls */
-/* Hallmark · waive 30a · ♠ ♣ ♥ ♦ in .suit, .print-px, .pencil, .ticket, .take, the board strip and the reveal hands · these are the game's four card suits, set as text in the UI face, not emoji icons; every quote, trade and order is written with them */
+/* Hallmark · note · ♠ ♣ ♥ ♦ are the game's four card suits, set as text in the UI face (rule 30a flags them as icons; they are content, the way every quote, trade and order is written) */
 /* Hallmark · waive 24b · .pencil, .badge, .card-front, .stamp, .slip, .sheet, .take · paper slips and badges are hand-set in 1-3px offsets so paper reads as cut and pencilled by hand, not gridded */
 
 /* ------------------------------------------------------------------ tokens */
@@ -315,7 +315,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   min-width: 0;
   max-width: 44rem;
   padding: 7px 14px 6px 14px;
-  border-left: 4px solid var(--ink);
+  border: 1px solid var(--ink);
   rotate: -0.5deg;
   font-size: var(--text-sm);
   font-weight: 550;
