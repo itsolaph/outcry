@@ -177,8 +177,9 @@ Third-party code, SDKs and assets used, with sources and licences:
 | React 18, React DOM | web UI | github.com/facebook/react | MIT |
 | Vite 6, `@vitejs/plugin-react` | bundler | github.com/vitejs/vite | MIT |
 | `buffer`, `bs58`, `tweetnacl` | browser Buffer polyfill, base58, ed25519 signing | github.com/feross/buffer, github.com/cryptocoinjs/bs58, github.com/dchest/tweetnacl-js | MIT, MIT, Unlicense |
-| Big Shoulders Display (via `@fontsource/big-shoulders-display`) | display type | files from github.com/google/fonts via Fontsource (licence copyright line: Google Inc.) | SIL OFL 1.1 |
-| Atkinson Hyperlegible (via `@fontsource/atkinson-hyperlegible`) | body type | Braille Institute of America; files from github.com/google/fonts via Fontsource | SIL OFL 1.1 |
+| Archivo (via `@fontsource-variable/archivo`) | identity and UI type (variable width) | files from github.com/google/fonts via Fontsource | SIL OFL 1.1 |
+| Doto (via `@fontsource-variable/doto`) | dot-matrix numerals on the price board and bell clock | files from github.com/google/fonts via Fontsource | SIL OFL 1.1 |
+| Kalam (via `@fontsource/kalam`) | pencil writing on trading cards | files from github.com/google/fonts via Fontsource | SIL OFL 1.1 |
 | Playwright (`playwright-core`) | headless browser e2e test | github.com/microsoft/playwright | Apache-2.0 |
 | TypeScript, tsx | type-checking, script runner | github.com/microsoft/TypeScript, github.com/privatenumber/tsx | Apache-2.0, MIT |
 | MagicBlock Engine integration examples | reference only (patterns for VRF, permissions, crank, Vite setup); no code copied verbatim | github.com/magicblock-labs/magicblock-engine-examples | MIT |

@@ -1,33 +1,64 @@
 import { ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import { SUITS, TableState } from "@outcry/client";
 import { explorerAddress, explorerTx } from "./config";
+import jacketRed from "./assets/img/jacket-red.webp";
+import jacketGreen from "./assets/img/jacket-green.webp";
+import jacketGold from "./assets/img/jacket-gold.webp";
+import jacketBlue from "./assets/img/jacket-blue.webp";
 
 export const SUIT_GLYPH = ["♠", "♣", "♥", "♦"];
 export const SUIT_NAME = SUITS;
 /** Trading jackets: each seat wears one colour everywhere in the UI. */
 export const JACKETS = [
-  { name: "Red", cls: "j0" },
-  { name: "Green", cls: "j1" },
-  { name: "Gold", cls: "j2" },
-  { name: "Blue", cls: "j3" },
+  { name: "Red", cls: "j0", img: jacketRed },
+  { name: "Green", cls: "j1", img: jacketGreen },
+  { name: "Gold", cls: "j2", img: jacketGold },
+  { name: "Blue", cls: "j3", img: jacketBlue },
 ];
 
 export function Suit({ s, withName = false }: { s: number; withName?: boolean }) {
   return (
     <span className={`suit s${s}`} title={SUIT_NAME[s]}>
-      <span aria-hidden="true">{SUIT_GLYPH[s]}</span>
+      <span className="glyph" aria-hidden="true">
+        {SUIT_GLYPH[s]}
+      </span>
       {withName ? <span className="suit-name"> {SUIT_NAME[s]}</span> : <span className="sr-only">{SUIT_NAME[s]}</span>}
     </span>
   );
 }
 
+/** A seat's jacket as a small flat tag: colour block with the seat number, then the name. */
 export function Jacket({ seat, label }: { seat: number; label?: ReactNode }) {
   return (
     <span className={`jacket ${JACKETS[seat].cls}`}>
-      <span className="jacket-dot" aria-hidden="true" />
+      <span className="jacket-n" aria-hidden="true">
+        {seat + 1}
+      </span>
       {label ?? JACKETS[seat].name}
     </span>
   );
+}
+
+/** The jacket photo on its hook, with the seat number set on the blank clip badge. */
+export function JacketPortrait({ seat, className = "" }: { seat: number; className?: string }) {
+  return (
+    <span className={`portrait ${JACKETS[seat].cls} ${className}`} data-n={seat + 1}>
+      <img src={JACKETS[seat].img} alt="" width={480} height={480} loading="lazy" decoding="async" />
+    </span>
+  );
+}
+
+/** A number that ticks when it changes (re-keyed so only a new value animates). */
+export function Tick({ v, className = "" }: { v: ReactNode; className?: string }) {
+  return (
+    <span className={`tick ${className}`} key={String(v)}>
+      {v}
+    </span>
+  );
+}
+
+export function ordinal(n: number): string {
+  return `${n}${["st", "nd", "rd", "th"][Math.min(n, 4) - 1]}`;
 }
 
 export function TxLink({ sig, layer, children }: { sig: string; layer: "base" | "er"; children?: ReactNode }) {
@@ -62,6 +93,18 @@ export function phaseText(t: TableState, now: number): string {
     case "settled":
       return `Bell rang ${fmtClock(now - t.tradeEndTs)} ago`;
   }
+}
+
+/** Matches a media query (layout-only: picks the pit's drawing shape). */
+export function useMedia(query: string): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      const m = window.matchMedia(query);
+      m.addEventListener("change", l);
+      return () => m.removeEventListener("change", l);
+    },
+    () => window.matchMedia(query).matches,
+  );
 }
 
 // ------------------------------------------------------------------ toasts
@@ -101,7 +144,7 @@ export function Toasts() {
           {t.sig ? (
             <>
               {" "}
-              <TxLink sig={t.sig} layer="er">view</TxLink>
+              <TxLink sig={t.sig} layer="er">View transaction</TxLink>
             </>
           ) : null}
         </div>

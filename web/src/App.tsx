@@ -19,8 +19,10 @@ export function App() {
       <TopBar route={path} />
       {tableMatch ? <TableView key={tableMatch[1]} address={tableMatch[1]} /> : path === "/how" ? <HowItWorks /> : <Lobby />}
       <footer className="foot">
-        Outcry runs on Solana devnet and a MagicBlock private ephemeral rollup. Play money only.{" "}
-        <a href="#/how">How it works</a>
+        <div className="container foot-in">
+          <p>Outcry runs on Solana devnet and a MagicBlock private ephemeral rollup. Play money only.</p>
+          <a href="#/how">How it works</a>
+        </div>
       </footer>
       <Toasts />
     </>
@@ -29,22 +31,24 @@ export function App() {
 
 function TopBar({ route }: { route: string }) {
   return (
-    <nav className="topbar" aria-label="Main">
-      <a className="brand" href="#/">
-        Outcry
-      </a>
-      <a className={route === "/" ? "nav on" : "nav"} href="#/">
-        Lobby
-      </a>
-      <a className={route === "/how" ? "nav on" : "nav"} href="#/how">
-        How it works
-      </a>
-      <span className="grow" />
-      <span className="guest" title="Your in-browser session key (holds 0 SOL)">
-        Guest <AddrLink addr={sessionKey().publicKey.toBase58()} layer="er" />
-      </span>
-      <WalletMenu />
-    </nav>
+    <header className="topbar">
+      <nav className="container topbar-in" aria-label="Main">
+        <a className="brand" href="#/">
+          Outcry
+        </a>
+        <a className="nav" href="#/" aria-current={route === "/" ? "page" : undefined}>
+          Lobby
+        </a>
+        <a className="nav" href="#/how" aria-current={route === "/how" ? "page" : undefined}>
+          How it works
+        </a>
+        <span className="grow" />
+        <span className="guest" title="Your in-browser session key (holds 0 SOL)">
+          Guest key <AddrLink addr={sessionKey().publicKey.toBase58()} layer="er" />
+        </span>
+        <WalletMenu />
+      </nav>
+    </header>
   );
 }
 
@@ -74,7 +78,7 @@ function WalletMenu() {
 
   return (
     <div className="wallet">
-      <button className="btn btn-ghost btn-small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+      <button className="btn btn-line btn-small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         {addr ? (
           `${addr.slice(0, 4)}…${addr.slice(-4)}`
         ) : (
@@ -91,11 +95,11 @@ function WalletMenu() {
                 A wallet is optional. Connect one (set to devnet) to bind your seat to an on-chain player record. You play the
                 same without it.
               </p>
-              {w.available.length === 0 ? <p className="muted">No Solana wallet detected in this browser.</p> : null}
+              {w.available.length === 0 ? <p className="muted">No Solana wallet found in this browser.</p> : null}
               {w.available.map((x) => (
                 <button
                   key={x.name}
-                  className="btn btn-ghost wallet-opt"
+                  className="btn btn-line wallet-opt"
                   onClick={() =>
                     connectWallet(x)
                       .then(() => toast("ok", `${x.name} connected. Your next seat will be bound to it.`))
@@ -115,20 +119,20 @@ function WalletMenu() {
               {record ? (
                 <dl className="record">
                   <dt>Rounds</dt>
-                  <dd className="mono">{record.rounds}</dd>
+                  <dd className="num">{record.rounds}</dd>
                   <dt>Wins</dt>
-                  <dd className="mono">{record.wins}</dd>
+                  <dd className="num">{record.wins}</dd>
                   <dt>Orders filled</dt>
-                  <dd className="mono">{record.ordersFilled}</dd>
+                  <dd className="num">{record.ordersFilled}</dd>
                   <dt>Best score</dt>
-                  <dd className="mono">{record.bestScore}</dd>
+                  <dd className="num">{record.bestScore}</dd>
                 </dl>
               ) : null}
               {record === null ? (
                 <>
-                  <p>No player record yet. Creating one costs about 0.0012 SOL of devnet rent, paid by your wallet, once.</p>
+                  <p>No player record yet. Creating one costs about 0.0012 SOL of devnet rent, paid once by your wallet.</p>
                   <button
-                    className="btn btn-bell btn-small"
+                    className="btn btn-fill btn-small"
                     disabled={busy}
                     onClick={async () => {
                       setBusy(true);

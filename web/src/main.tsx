@@ -1,8 +1,8 @@
 import "./polyfills";
-import "@fontsource/big-shoulders-display/latin-600";
-import "@fontsource/big-shoulders-display/latin-800";
-import "@fontsource/atkinson-hyperlegible/latin-400";
-import "@fontsource/atkinson-hyperlegible/latin-700";
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource-variable/doto";
+import "@fontsource/kalam/latin-400.css";
+import "@fontsource/kalam/latin-700.css";
 import "./styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

@@ -3,7 +3,9 @@ import { TableState, canJoin, freeSeats, seatOf } from "@outcry/client";
 import { HOUSE_TABLES, HUMAN_GRACE_SECS } from "./config";
 import { useErNow, useTables } from "./lib/hooks";
 import { sessionKey } from "./lib/outcry";
-import { JACKETS, fmtClock, go, phaseText } from "./ui";
+import pit1600 from "./assets/img/pit-gallery-1600.webp";
+import pit900 from "./assets/img/pit-gallery-900.webp";
+import { JACKETS, JacketPortrait, Tick, fmtClock, go, phaseText } from "./ui";
 
 /** Pick where "Play now" seats a guest: a joinable table now, else the one whose bell is next. */
 export function pickTable(tables: Record<string, TableState | null>, now: number): { address: string; wait: number } | null {
@@ -39,73 +41,114 @@ export function Lobby() {
   return (
     <main className="lobby">
       <section className="hero">
-        <div className="hero-copy">
-          <h1 className="wordmark">Outcry</h1>
-          <p className="pitch">
-            A 60-second trading pit for four. You get eight cards and a secret order nobody else can see. Buy and sell
-            cards against the house bots before the bell. Fill your order and finish with the most chips.
-          </p>
-          <div className="hero-actions">
-            <button
-              className="btn btn-bell"
-              data-testid="play-now"
-              disabled={!pick || busy}
-              onClick={() => {
-                if (!pick) return;
-                setBusy(true);
-                go(`/t/${pick.address}?play=1`);
-              }}
-            >
-              {!loaded ? "Finding a table…" : pick ? "Play now" : "All seats taken"}
-            </button>
-            <span className="hint">
-              {pick && pick.wait > 0
-                ? `Next free seat opens at the bell in ${fmtClock(pick.wait)}.`
-                : "No wallet needed. Your browser holds a throwaway key with 0 SOL."}
-            </span>
+        <img
+          className="hero-img"
+          src={pit1600}
+          srcSet={`${pit900} 900w, ${pit1600} 1600w`}
+          sizes="100vw"
+          width={1600}
+          height={900}
+          alt="Looking down from the gallery into a stepped octagonal trading pit, traders in red, green, gold and blue jackets with their hands up."
+          decoding="async"
+        />
+        <div className="hero-copy container">
+          <h1 className="hero-head">Trade your hand before the bell rings.</h1>
+          <div className="hero-card">
+            <p className="pitch">
+              Four seats, sixty seconds. You get eight cards and a secret order nobody else can see. Buy and sell against the
+              house bots, fill your order and finish with the most chips.
+            </p>
+            <div className="hero-actions">
+              <button
+                className="btn btn-fill btn-big"
+                data-testid="play-now"
+                disabled={!pick || busy}
+                onClick={() => {
+                  if (!pick) return;
+                  setBusy(true);
+                  go(`/t/${pick.address}?play=1`);
+                }}
+              >
+                {!loaded ? "Finding a table…" : pick ? "Play now" : "All seats taken"}
+              </button>
+              <span className="hint">
+                {pick && pick.wait > 0 ? (
+                  <>
+                    The next free seat opens at the bell in <span className="num">{fmtClock(pick.wait)}</span>.
+                  </>
+                ) : (
+                  "No wallet needed. Your browser holds a throwaway key with 0 SOL."
+                )}
+              </span>
+            </div>
           </div>
         </div>
-        <TicketArt />
       </section>
 
-      <section className="board" aria-label="House tables">
-        <div className="board-head">
-          <h2>House tables</h2>
-          <span className="board-sub">Live on the MagicBlock private rollup. Bots play every round; take a seat between rounds.</span>
+      <section className="jackets container" aria-labelledby="jackets-h">
+        <div className="jackets-copy">
+          <h2 id="jackets-h">Four jackets on the hook</h2>
+          <p>House bots wear all four between players. Take a seat and you wear one for the round, numbered on its badge.</p>
         </div>
-        <div className="board-rows" role="table">
-          <div className="board-row board-row-head" role="row">
+        <ul className="jacket-row">
+          {JACKETS.map((j, i) => (
+            <li key={j.cls}>
+              <JacketPortrait seat={i} />
+              <span className="jacket-cap">
+                <b>{j.name}</b> seat {i + 1}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="tables container" aria-labelledby="tables-h">
+        <div className="tables-head">
+          <h2 id="tables-h">House tables</h2>
+          <p>Live on the MagicBlock private rollup. Bots trade every round. Seats open between rounds.</p>
+        </div>
+        <div className="table-rows" role="table" aria-label="House tables">
+          <div className="table-row table-row-head" role="row">
             <span role="columnheader">Table</span>
             <span role="columnheader">Round</span>
             <span role="columnheader">Status</span>
             <span role="columnheader">Seats</span>
-            <span role="columnheader" />
+            <span role="columnheader">
+              <span className="sr-only">Action</span>
+            </span>
           </div>
           {HOUSE_TABLES.map((h) => {
             const t = tables[h.address];
             const free = t ? freeSeats(t).length : 0;
             const seated = t ? seatOf(t, me) >= 0 : false;
+            const open = !!t && t.phase === "settled" && now - t.tradeEndTs < HUMAN_GRACE_SECS + 5;
             return (
-              <div className="board-row" role="row" key={h.address} data-testid="lobby-table">
+              <div className={`table-row ${t ? "" : "is-loading"}`} role="row" key={h.address} data-testid="lobby-table">
                 <span className="tname" role="cell">
                   {h.name}
                 </span>
-                <span className="mono" role="cell">
-                  {t ? t.round : "–"}
+                <span className="tround num" role="cell">
+                  {t ? <Tick v={t.round} /> : "–"}
                 </span>
                 <span className={`status ph-${t?.phase ?? "none"}`} role="cell">
                   {t ? phaseText(t, now) : loaded ? "Unreachable" : "Loading"}
-                  {t && t.phase === "settled" && now - t.tradeEndTs < HUMAN_GRACE_SECS + 5 ? <em className="open-tag">seats open</em> : null}
+                  {open ? <span className="open-tag">Seats open now</span> : null}
                 </span>
-                <span className="seats" role="cell" aria-label={`${free} of 4 seats free`}>
+                <span className="seats" role="cell" aria-label={t ? `${free} of 4 seats free` : undefined}>
                   {t
-                    ? t.seats.map((s, i) => (
-                        <span key={i} className={`seatpip ${JACKETS[i].cls} ${s.kind === "human" ? "taken" : ""}`} title={`${JACKETS[i].name}: ${s.kind === "human" ? (s.owner.toBase58() === me ? "you" : "player") : "house bot"}`} />
-                      ))
+                    ? t.seats.map((s, i) => {
+                        const who = s.kind === "human" ? (s.owner.toBase58() === me ? "you" : "player") : "bot";
+                        return (
+                          <span key={i} className={`seat-tag ${JACKETS[i].cls} ${s.kind === "human" ? "is-taken" : ""}`} title={`${JACKETS[i].name}: ${who === "bot" ? "house bot" : who}`}>
+                            <b>{i + 1}</b>
+                            <span>{who}</span>
+                          </span>
+                        );
+                      })
                     : null}
                 </span>
-                <span role="cell">
-                  <a className="btn btn-ghost" href={`#/t/${h.address}`}>
+                <span className="tgo" role="cell">
+                  <a className="btn btn-line" href={`#/t/${h.address}`}>
                     {seated ? "Back to my seat" : "Watch"}
                   </a>
                 </span>
@@ -115,30 +158,5 @@ export function Lobby() {
         </div>
       </section>
     </main>
-  );
-}
-
-/** A stack of order tickets, the one decorative object on the page. */
-function TicketArt() {
-  return (
-    <div className="ticket-art" aria-hidden="true">
-      <div className="slip slip-back">
-        <span>SELL 1 ♥ @ 18</span>
-      </div>
-      <div className="slip slip-mid">
-        <span>BUY 1 ♣ @ 21</span>
-      </div>
-      <div className="slip slip-front">
-        <div className="slip-row">
-          <span>Order</span>
-          <span className="stamp">Private</span>
-        </div>
-        <div className="slip-big">4 ♣ + 2 ♦</div>
-        <div className="slip-row">
-          <span>Hand ♠2 ♣1 ♥2 ♦3</span>
-          <span>200 chips</span>
-        </div>
-      </div>
-    </div>
   );
 }
