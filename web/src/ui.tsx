@@ -39,6 +39,16 @@ export function Jacket({ seat, label }: { seat: number; label?: ReactNode }) {
   );
 }
 
+/** A seat as a small jacket-colour square with its number; the name is for screen readers. */
+export function SeatSquare({ seat }: { seat: number }) {
+  return (
+    <span className={`sq ${JACKETS[seat].cls}`} title={JACKETS[seat].name}>
+      <span aria-hidden="true">{seat + 1}</span>
+      <span className="sr-only">{JACKETS[seat].name}</span>
+    </span>
+  );
+}
+
 /** The jacket photo on its hook, with the seat number set on the blank clip badge. */
 export function JacketPortrait({ seat, className = "" }: { seat: number; className?: string }) {
   return (
@@ -140,7 +150,9 @@ export function Toasts() {
     <div className="toasts" role="status" aria-live="polite">
       {list.map((t) => (
         <div key={t.id} className={`toast toast-${t.kind}`} data-testid={`toast-${t.kind}`} data-toast-id={t.id}>
-          {t.text}
+          <span className="toast-text" title={t.text}>
+            {t.text}
+          </span>
           {t.sig ? (
             <>
               {" "}

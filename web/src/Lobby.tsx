@@ -37,6 +37,14 @@ export function Lobby() {
   const loaded = Object.keys(tables).length > 0;
   const me = sessionKey().publicKey.toBase58();
   const pick = loaded ? pickTable(tables, now) : null;
+  const pickTableState = pick ? tables[pick.address] : null;
+  const pickInfo =
+    pick && pickTableState
+      ? {
+          name: HOUSE_TABLES.find((h) => h.address === pick.address)?.name ?? "Pit",
+          round: pickTableState.round,
+        }
+      : null;
 
   return (
     <main className="lobby">
@@ -51,13 +59,26 @@ export function Lobby() {
           alt="Looking down from the gallery into a stepped octagonal trading pit, traders in red, green, gold and blue jackets with their hands up."
           decoding="async"
         />
-        <div className="hero-copy container">
+        <div className="hero-copy">
           <h1 className="hero-head">Trade your hand before the bell rings.</h1>
           <div className="hero-card">
-            <p className="pitch">
-              Four seats, sixty seconds. You get eight cards and a secret order nobody else can see. Buy and sell against the
-              house bots, fill your order and finish with the most chips.
-            </p>
+            <div className="hero-stub" aria-hidden={pick ? undefined : "true"}>
+              {pickInfo ? (
+                <>
+                  <span className="stub-big">{pickInfo.name}</span>
+                  <span>round {pickInfo.round}</span>
+                  <span>60 s</span>
+                </>
+              ) : (
+                <>
+                  <span className="stub-big">Pit</span>
+                  <span>{loaded ? "all full" : "finding one"}</span>
+                  <span>60 s</span>
+                </>
+              )}
+            </div>
+            <div className="hero-body">
+            <p className="pitch">Eight cards, a secret order, sixty seconds. Fill your order and finish with the most chips.</p>
             <div className="hero-actions">
               <button
                 className="btn btn-fill btn-big"
@@ -80,6 +101,7 @@ export function Lobby() {
                   "No wallet needed. Your browser holds a throwaway key with 0 SOL."
                 )}
               </span>
+            </div>
             </div>
           </div>
         </div>

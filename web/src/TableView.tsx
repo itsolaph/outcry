@@ -23,7 +23,7 @@ import { TxEntry, useTxLog } from "./lib/txlog";
 import { useWallet } from "./lib/wallet";
 import { Pit, roundTape } from "./Pit";
 import bellImg from "./assets/img/bell.webp";
-import { AddrLink, JACKETS, Jacket, JacketPortrait, Suit, Tick, TxLink, fmtClock, go, ordinal, toast } from "./ui";
+import { AddrLink, JACKETS, Jacket, JacketPortrait, SeatSquare, Suit, Tick, TxLink, fmtClock, go, ordinal, toast } from "./ui";
 
 const BONUS = 100;
 
@@ -259,7 +259,49 @@ export function TableView({ address }: { address: string }) {
           Table state streams from the TEE rollup at <code>{TEE_RPC.replace(/^https:\/\//, "")}</code> ({source === "ws" ? "live subscription" : "polling"}).
         </p>
       </div>
+
+      {t.phase === "trading" && mySeat >= 0 && mine ? <Cockpit t={t} mine={mine} seatIndex={mySeat} now={now} /> : null}
     </main>
+  );
+}
+
+/** Phone only: the decision loop pinned to the bottom edge while the book scrolls. */
+function Cockpit({ t, mine, seatIndex, now }: { t: TableState; mine: SeatState; seatIndex: number; now: number }) {
+  const need = orderRequirement(mine.order);
+  const left = t.tradeEndTs - now;
+  // While your card is on screen the bar would only repeat it, so it tucks away.
+  const [cardInView, setCardInView] = useState(true);
+  useEffect(() => {
+    const card = document.querySelector('[data-testid="my-ticket"]');
+    if (!card || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setCardInView(e.intersectionRatio >= 0.15), { threshold: [0, 0.15, 0.5] });
+    io.observe(card);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <aside className={`cockpit ${JACKETS[seatIndex].cls} ${cardInView ? "is-tucked" : ""}`} aria-label="Your round at a glance">
+      <span className="ck-order">
+        {mine.order.qtyA} <Suit s={mine.order.suitA} /> + {mine.order.qtyB} <Suit s={mine.order.suitB} />
+      </span>
+      <span className="ck-held" aria-label="Held of each suit you need">
+        {[0, 1, 2, 3]
+          .filter((s) => need[s] > 0)
+          .map((s) => (
+            <span key={s} className={mine.hand[s] >= need[s] ? "is-ok" : ""}>
+              <Suit s={s} />
+              <b className="num">
+                {mine.hand[s]}/{need[s]}
+              </b>
+            </span>
+          ))}
+      </span>
+      <span className="ck-chips">
+        <b className="num">{mine.chips}</b> chips
+      </span>
+      <span className={`ck-clock ${left < 10 ? "is-late" : ""}`} aria-label={`${fmtClock(left)} until the bell`}>
+        {fmtClock(left)}
+      </span>
+    </aside>
   );
 }
 
@@ -307,17 +349,23 @@ function PriceBoard({ t }: { t: TableState }) {
               <span className="board-cell">
                 <span className="board-lab">Bid</span>
                 <span className="board-num">{bid ? <Tick v={bid.price} /> : "––"}</span>
-                <span className="board-who">{bid ? JACKETS[bid.seat].name : " "}</span>
+                <span className="board-who">{bid ? <SeatSquare seat={bid.seat} /> :" "}</span>
               </span>
               <span className="board-cell">
                 <span className="board-lab">Offer</span>
                 <span className="board-num">{ask ? <Tick v={ask.price} /> : "––"}</span>
-                <span className="board-who">{ask ? JACKETS[ask.seat].name : " "}</span>
+                <span className="board-who">{ask ? <SeatSquare seat={ask.seat} /> :" "}</span>
               </span>
               <span className="board-cell board-last">
                 <span className="board-lab">Last</span>
                 <span className="board-num">{last ? <Tick v={last.price} /> : "––"}</span>
-                <span className="board-who">{last ? `${JACKETS[last.seller].name} to ${JACKETS[last.buyer].name}` : " "}</span>
+                <span className="board-who">{last ? (
+                    <>
+                      <SeatSquare seat={last.seller} />
+                      <span className="board-to">to</span>
+                      <SeatSquare seat={last.buyer} />
+                    </>
+                  ) :" "}</span>
               </span>
             </li>
           );
@@ -491,7 +539,7 @@ function Book({ t, mySeat, mine, busy, run, tablePk }: { t: TableState; mySeat: 
           </div>
         );
       })}
-      {!seated && mySeat < 0 ? <p className="sheet-foot">Each seat’s own quotes are pencilled under its badge in the pit.</p> : null}
+      {!seated && mySeat < 0 ? <p className="sheet-foot">Each seat’s own quotes are pencilled on the tab beside its badge in the pit.</p> : null}
     </section>
   );
 }
@@ -617,65 +665,101 @@ function PrivacyStory({ t, tablePk, probe, mySeat, walletAddr }: { t: TableState
   return (
     <section className="story" aria-label="What was private and when it flipped">
       <h3>What was private, and when it turned public</h3>
-      <ol className="timeline">
-        <li>
-          <h4>Seats sealed</h4>
-          <p>
-            Starting the round made each seat private on the TEE rollup: only its owner’s signed-in key can read it. Bot
-            seats have no player reader. When the house dealer starts a round, its key sits in one seat just long enough to
-            deal and stays that seat’s only reader.{" "}
-            {startTx ? <TxLink sig={startTx.sig} layer="er">your start transaction</TxLink> : flips?.seal ? <TxLink sig={flips.seal} layer="er">seal transaction</TxLink> : null}
-          </p>
-        </li>
-        <li>
-          <h4>Cards dealt in the dark</h4>
-          <p>
-            A VRF callback shuffled the deck and wrote eight cards, 200 chips and a secret order into each sealed seat. The
-            TEE hid that transaction from everyone while the round ran, because its randomness decides every hand. Now that
-            the hands are public, it is readable too. {flips?.deal ? <TxLink sig={flips.deal} layer="er">deal transaction</TxLink> : null}
-          </p>
-        </li>
-        <li>
-          <h4>Trading</h4>
-          <p>
-            Prices and trades were public on the table account. Hands and orders were not.
-            {probe ? (
-              <>
-                {" "}
-                At {new Date(probe.at).toLocaleTimeString()} this page tried to read the <Jacket seat={probe.seat} /> seat with your key and found it{" "}
-                <b>{probe.hidden ? "hidden" : "visible, which was not expected"}</b>.
-              </>
-            ) : null}
-            {trades.length ? (
-              <>
-                {" "}
-                Your actions:{" "}
-                {trades.slice(0, 6).map((e) => (
-                  <span key={e.sig}>
-                    <TxLink sig={e.sig} layer="er">{e.label}</TxLink>{" "}
-                  </span>
-                ))}
-              </>
-            ) : null}
-          </p>
-        </li>
-        <li>
-          <h4>The bell turned everything public</h4>
-          <p>
-            Ringing the bell scored the round and set all four seats public, so anyone can now read every hand and order in
-            the pit.{" "}
-            {flips?.bell ? <TxLink sig={flips.bell} layer="er">bell transaction (rung by the crank)</TxLink> : <span className="muted">The on-chain crank rang it.</span>}
-          </p>
-        </li>
-        <li>
-          <h4>Results went to Solana</h4>
-          <p>
-            <code>publish_records</code> scheduled a Magic Action that updates wallet-bound player records on the devnet base
-            layer{t.recordsRound >= t.round ? "" : " (pending)"}. {publish ? <TxLink sig={publish.sig} layer="er">publish transaction</TxLink> : null}{" "}
-            {recordAddr ? <AddrLink addr={recordAddr} layer="base">your player record</AddrLink> : <span className="muted">Seats without a bound wallet are skipped.</span>}
-          </p>
-        </li>
-      </ol>
+      <div className="story-cols">
+        <ol className="timeline">
+          <li>
+            <h4>Seats sealed</h4>
+            <p>
+              Starting the round made each seat private on the TEE rollup: only its owner’s signed-in key can read it. Bot
+              seats have no player reader. When the house dealer starts a round, its key sits in one seat just long enough to
+              deal and stays that seat’s only reader.
+            </p>
+          </li>
+          <li>
+            <h4>Cards dealt in the dark</h4>
+            <p>
+              A VRF callback shuffled the deck and wrote eight cards, 200 chips and a secret order into each sealed seat. The
+              TEE hid that transaction from everyone while the round ran, because its randomness decides every hand. Now that
+              the hands are public, it is readable too.
+            </p>
+          </li>
+          <li>
+            <h4>Trading</h4>
+            <p>
+              Prices and trades were public on the table account. Hands and orders were not.
+              {probe ? (
+                <>
+                  {" "}
+                  At {new Date(probe.at).toLocaleTimeString()} this page tried to read the <Jacket seat={probe.seat} /> seat with your key and found it{" "}
+                  <b>{probe.hidden ? "hidden" : "visible, which was not expected"}</b>.
+                </>
+              ) : null}
+            </p>
+          </li>
+          <li>
+            <h4>The bell turned everything public</h4>
+            <p>Ringing the bell scored the round and set all four seats public, so anyone can now read every hand and order in the pit.</p>
+          </li>
+          <li>
+            <h4>Results went to Solana</h4>
+            <p>
+              <code>publish_records</code> scheduled a Magic Action that updates wallet-bound player records on the devnet base
+              layer{t.recordsRound >= t.round ? "" : " (pending)"}.
+            </p>
+          </li>
+        </ol>
+
+        <div className="sheet receipts">
+          <h4 className="receipts-title">Receipts for round {t.round}</h4>
+          <ol className="receipt-rows">
+            <li>
+              <span className="rc-step">Seats sealed</span>
+              <span className="rc-links">
+                {startTx ? (
+                  <TxLink sig={startTx.sig} layer="er">your start transaction</TxLink>
+                ) : flips?.seal ? (
+                  <TxLink sig={flips.seal} layer="er">seal transaction</TxLink>
+                ) : (
+                  <span className="muted">{flips ? "Not found on the rollup." : "Looking it up…"}</span>
+                )}
+              </span>
+            </li>
+            <li>
+              <span className="rc-step">Dealt</span>
+              <span className="rc-links">
+                {flips?.deal ? <TxLink sig={flips.deal} layer="er">deal transaction</TxLink> : <span className="muted">{flips ? "Not found on the rollup." : "Looking it up…"}</span>}
+              </span>
+            </li>
+            <li>
+              <span className="rc-step">Your actions</span>
+              <span className="rc-links">
+                {trades.length ? (
+                  trades.slice(0, 6).map((e) => (
+                    <TxLink key={e.sig} sig={e.sig} layer="er">
+                      {e.label}
+                    </TxLink>
+                  ))
+                ) : (
+                  <span className="muted">{mySeat >= 0 ? "None this round." : "You watched this round."}</span>
+                )}
+              </span>
+            </li>
+            <li>
+              <span className="rc-step">Bell</span>
+              <span className="rc-links">
+                {flips?.bell ? <TxLink sig={flips.bell} layer="er">bell transaction (rung by the crank)</TxLink> : <span className="muted">The on-chain crank rang it.</span>}
+              </span>
+            </li>
+            <li>
+              <span className="rc-step">Results</span>
+              <span className="rc-links">
+                {publish ? <TxLink sig={publish.sig} layer="er">publish transaction</TxLink> : null}
+                {recordAddr ? <AddrLink addr={recordAddr} layer="base">your player record</AddrLink> : <span className="muted">Seats without a bound wallet are skipped.</span>}
+              </span>
+            </li>
+          </ol>
+        </div>
+      </div>
     </section>
   );
 }

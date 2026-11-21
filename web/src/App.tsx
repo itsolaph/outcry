@@ -24,7 +24,23 @@ export function App() {
           <a href="#/how">How it works</a>
         </div>
       </footer>
-      <Toasts />
+      {/* print treatment for the photographs: pulls them toward the lino and ink of the drawn pit */}
+      <svg className="sr-only" aria-hidden="true" focusable="false" width="0" height="0">
+        <filter id="print" colorInterpolationFilters="sRGB">
+          <feColorMatrix
+            type="matrix"
+            values="0.78 0.14 0.03 0 0.035
+                    0.09 0.80 0.06 0 0.035
+                    0.08 0.14 0.66 0 0.03
+                    0    0    0    1 0"
+          />
+          <feComponentTransfer>
+            <feFuncR type="linear" slope="1.06" intercept="-0.03" />
+            <feFuncG type="linear" slope="1.06" intercept="-0.03" />
+            <feFuncB type="linear" slope="1.06" intercept="-0.03" />
+          </feComponentTransfer>
+        </filter>
+      </svg>
     </>
   );
 }
@@ -42,10 +58,13 @@ function TopBar({ route }: { route: string }) {
         <a className="nav" href="#/how" aria-current={route === "/how" ? "page" : undefined}>
           How it works
         </a>
-        <span className="grow" />
-        <span className="guest" title="Your in-browser session key (holds 0 SOL)">
-          Guest key <AddrLink addr={sessionKey().publicKey.toBase58()} layer="er" />
-        </span>
+        {/* the status slip: a reserved slot in the header, so a message never covers the page */}
+        <div className="statusrow">
+          <Toasts />
+          <span className="guest" title="Your in-browser session key (holds 0 SOL)">
+            Guest key <AddrLink addr={sessionKey().publicKey.toBase58()} layer="er" />
+          </span>
+        </div>
         <WalletMenu />
       </nav>
     </header>

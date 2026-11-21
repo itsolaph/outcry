@@ -2,7 +2,7 @@
  * paper: oklch(91.2% 0.009 115) linoleum, cards on oklch(98.4% 0.007 100) · accent: four jackets only, oklch(57% 0.19 31) red, oklch(54% 0.13 152) green, oklch(76% 0.15 76) gold, oklch(50% 0.18 263) blue · display: Archivo Variable at wdth 125, 800-900 · body: Archivo Variable at wdth 100, 450-650 (Doto on the price board and bell clock only, Kalam for pencil on paper only)
  * nav: rebuilt, ink on lino, wordmark, Lobby, How it works, guest key, wallet menu · signature: the pit, a stepped octagon with jacket badges, trade arcs, the bell clock and the reveal flip · states: skeleton, loading, empty, watching, queued, seated, dealing, trading, settled, rejected, disabled, wallet open
  * axes: light/grotesk-wide/four-jacket · posture: quiet floor, loud pit · contrast: pass · v2.0.0 */
-/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: E, the pit has to carry live quotes, eight arcs and four flipped cards on a 390px phone, so the drawing switches to a portrait octagon there, badges and slips size in container units and the card and book drop below the pit instead of overlapping it */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: E, the pit has to carry live quotes, arcs and four flipped cards on a 390px phone, so every pit element is laid out in drawing units and collision-checked (slips skip any spot over a badge, tab or the clock; phones keep three arcs and one slip), status messages dock in a reserved header slot, and a phone bar keeps order, held, chips and clock in view while the book scrolls */
 /* Hallmark · waive 24b · .pencil, .badge, .card-front, .stamp, .slip, .sheet, .take · paper slips and badges are hand-set in 1-3px offsets so paper reads as cut and pencilled by hand, not gridded */
 
 /* ------------------------------------------------------------------ tokens */
@@ -10,10 +10,14 @@
   color-scheme: light;
   /* floor */
   --lino: #e3e4dc;
-  --step-1: #cfd1c6;
-  --step-2: #bfc2b5;
-  --step-3: #adb1a2;
+  --step-1: #d2d4c8;
+  --step-2: #bcc0b1;
+  --step-3: #a5aa9a;
+  --step-floor: #959a8a;
   --step-edge: #8e9384;
+  --step-riser: #6b7063;
+  --step-line: #4f544a;
+  --field: #ffffff;
   --ink: #16181a;
   --ink-muted: #4c5048;
   --paper: #fbfaf5;
@@ -197,6 +201,8 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   background: var(--step-1);
 }
 .portrait img { width: 100%; height: 100%; object-fit: cover; }
+/* print treatment: the photographs pick up the lino and ink of the drawn pit (SVG filter in App) */
+.portrait img, .reveal-bell, .how-bell { filter: url(#print); }
 .portrait::after {
   content: attr(data-n);
   position: absolute;
@@ -212,8 +218,10 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 }
 
 /* ------------------------------------------------------------------ top bar */
-.topbar { border-bottom: 2px solid var(--step-2); }
+.topbar { position: sticky; top: 0; z-index: 30; background: var(--lino); border-bottom: 2px solid var(--step-2); }
 .topbar-in { display: flex; align-items: center; gap: 4px 22px; min-height: 60px; }
+/* the status slip lives in a reserved slot of the bar: it pushes nothing and covers nothing */
+.statusrow { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
 .brand {
   font-size: 1.6rem;
   font-weight: 900;
@@ -252,11 +260,16 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .record dd { margin: 0; font-weight: 750; text-align: right; }
 .wallet-pop .linkish { justify-self: start; }
 @media (max-width: 40rem) {
-  .topbar-in { gap: 4px 12px; }
+  .topbar-in { flex-wrap: wrap; gap: 0 12px; min-height: 0; padding-top: 6px; }
   .brand { font-size: 1.25rem; margin-right: 0; }
   .nav { font-size: var(--text-sm); }
+  .wallet { margin-left: auto; }
   .wallet > .btn { padding: 0 0.7rem; }
-  .guest, .opt-label { display: none; }
+  .opt-label { display: none; }
+  /* phones: the slip gets its own reserved line under the nav; the guest key rests there */
+  .statusrow { order: 5; flex: 1 0 100%; display: grid; align-items: center; height: 48px; padding-bottom: 4px; }
+  .statusrow > * { grid-area: 1 / 1; min-width: 0; }
+  .statusrow:has(.toast) .guest { visibility: hidden; }
 }
 
 /* ------------------------------------------------------------------ footer */
@@ -265,22 +278,18 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .foot-in a { color: var(--ink); font-weight: 600; }
 
 /* ------------------------------------------------------------------ toasts */
-.toasts {
-  position: fixed;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: var(--gutter);
-  z-index: 30;
-  display: grid;
-  gap: 8px;
-  max-width: 24rem;
-  margin-left: auto;
-}
+.toasts { flex: 1; min-width: 0; display: flex; justify-content: center; }
 .toast {
-  padding: 10px 14px 12px;
-  border-top: 5px solid var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+  max-width: 44rem;
+  padding: 6px 12px 6px 10px;
+  border-left: 5px solid var(--ink);
   font-size: var(--text-sm);
   font-weight: 550;
+  line-height: 1.3;
   @media (prefers-reduced-motion: no-preference) {
     transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
     @starting-style {
@@ -289,42 +298,80 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
     }
   }
 }
-.toast-bad { border-top-color: var(--j0); color: var(--j0); }
-.toast-info { border-top-color: var(--step-edge); }
-.toast a { color: var(--ink); white-space: nowrap; }
+.toast-text { min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.toast-bad { border-left-color: var(--j0); color: var(--j0); }
+.toast-info { border-left-color: var(--step-edge); }
+.toast a { flex: none; color: var(--ink); white-space: nowrap; }
+/* one slip at a time: older messages stay readable to assistive tech only */
+.toast:not(:last-child) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 40rem) {
+  .toasts { justify-content: stretch; }
+  .toast { width: 100%; max-width: none; font-size: 0.8125rem; padding-block: 5px; }
+}
 
 /* ------------------------------------------------------------------ lobby */
-.hero { position: relative; background: var(--step-1); }
+/* the headline sits on flat lino; the gallery photo stands beside it, never under it */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); background: var(--lino); border-bottom: 2px solid var(--step-2); }
 .hero-img {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: calc(100svh - 62px);
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  object-position: 50% 62%;
+  object-position: 74% 58%;
 }
-.hero-copy { display: grid; gap: 20px; padding-block: 24px 8px; }
+.hero-copy { order: -1; display: grid; gap: 24px; justify-items: start; padding: 28px var(--gutter) 28px; }
 .hero-head {
-  font-size: clamp(2.4rem, 4.6vw, 4.75rem);
+  font-size: clamp(2.5rem, 5vw, 5rem);
   font-weight: 900;
   font-stretch: 125%;
   line-height: 0.9;
   letter-spacing: -0.01em;
+  max-width: 11ch;
 }
-.hero-card { padding: 18px 20px; display: grid; gap: 16px; }
-.pitch { font-size: 1.0625rem; }
-.hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
-.hint { font-size: var(--text-sm); color: var(--ink-muted); max-width: 32ch; }
+/* the pitch is a trading ticket: a pencilled stub, a perforation, the order body */
+.hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 6.25rem) minmax(0, 1fr);
+  width: 100%;
+  max-width: 30rem;
+  rotate: -0.6deg;
+}
+.hero-stub {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 16px 10px 14px 14px;
+  border-right: 2px dashed var(--step-edge);
+  font-family: var(--font-pencil);
+  font-size: 1.0625rem;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.stub-big { font-size: 1.65rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.hero-stub::before, .hero-stub::after {
+  content: "";
+  position: absolute;
+  right: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--lino);
+}
+.hero-stub::before { top: -8px; }
+.hero-stub::after { bottom: -8px; }
+.hero-body { display: grid; gap: 14px; justify-items: start; padding: 16px 18px 18px; }
+.pitch { font-size: 1.0625rem; color: var(--ink); }
+.hero-actions { display: grid; gap: 10px; justify-items: start; }
+.hint { font-size: var(--text-md); color: var(--ink); max-width: 34ch; }
 @media (min-width: 60rem) {
+  .hero { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); height: min(calc(100svh - 62px), 46rem); }
   .hero-copy {
-    position: absolute;
-    inset: 0;
     align-content: center;
-    justify-items: start;
-    gap: 28px;
-    padding-block: 32px;
+    gap: 32px;
+    padding-left: max(var(--gutter), calc((100vw - var(--container)) / 2 + var(--gutter)));
+    padding-right: 40px;
   }
-  .hero-head { max-width: min(34vw, 31rem); }
-  .hero-card { max-width: min(33vw, 27rem); }
+  .hero-img { height: 100%; aspect-ratio: auto; object-position: 78% 56%; }
 }
 
 .jackets {
@@ -449,7 +496,24 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .board-suit .glyph { font-size: 2rem; }
 .board-suit .suit { display: grid; justify-items: start; }
 .board-cell { display: grid; min-width: 0; }
-.board-lab, .board-who { font-size: var(--text-xs); color: var(--board-dim); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.board-lab { font-size: var(--text-xs); color: var(--board-dim); line-height: 1.3; white-space: nowrap; }
+.board-who { display: flex; align-items: center; gap: 4px; min-height: 1.75rem; padding-top: 4px; }
+.board-to { font-size: var(--text-xs); color: var(--board-dim); }
+.sq {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 3px;
+  border-radius: 2px;
+  background: var(--j);
+  color: var(--j-on);
+  font-size: 0.8125rem;
+  font-weight: 850;
+  font-stretch: 125%;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
 .board-num {
   font-family: var(--font-board);
   font-size: clamp(1.7rem, 2.6vw, 2.5rem);
@@ -492,73 +556,92 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 /* the floor: pit with its rail */
 .floor {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
-  grid-template-areas: "pit top" "pit rail";
-  grid-template-rows: auto 1fr;
-  column-gap: 32px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "top" "pit" "rail";
+  row-gap: 16px;
   align-items: start;
   padding-block: 20px 16px;
 }
-.floor-top { grid-area: top; margin-bottom: 16px; }
-.floor-pit { grid-area: pit; min-width: 0; }
+.floor-top { grid-area: top; }
+.floor-pit { grid-area: pit; min-width: 0; width: 100%; max-width: 60rem; justify-self: center; }
 .floor-rail { grid-area: rail; min-width: 0; display: grid; gap: 16px; }
-@media (max-width: 60rem) {
-  .floor { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "pit" "rail"; grid-template-rows: auto; row-gap: 16px; }
-  .floor-top { margin-bottom: 0; }
+@media (min-width: 72rem) {
+  .floor {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 25rem);
+    grid-template-areas: "pit top" "pit rail";
+    grid-template-rows: auto 1fr;
+    column-gap: 32px;
+    row-gap: 0;
+  }
+  .floor-top { margin-bottom: 16px; }
+  .floor-pit { max-width: none; }
 }
 .status-note { padding: 14px 16px; background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow-paper); }
 .status-note.is-bad { color: var(--j0); font-weight: 600; }
 
 /* ------------------------------------------------------------------ THE PIT */
+/* Everything in the pit is placed in the drawing's own units (Pit.tsx lays it out and checks for
+   collisions), so sizes here are in --u: one drawing unit at the current stage width. */
 .pit { position: relative; }
-.pit-stage { position: relative; width: 100%; container-type: inline-size; }
+.pit-stage { position: relative; width: 100%; container-type: inline-size; --u: calc(100cqi / var(--W)); }
 .pit-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.step-rail, .step-riser { fill: var(--step-edge); }
+.step-rail { fill: var(--step-line); }
+.step-riser { fill: var(--step-riser); }
+.step { stroke: var(--step-line); stroke-width: 2; }
 .step-0 { fill: var(--step-1); }
 .step-1 { fill: var(--step-2); }
 .step-2 { fill: var(--step-3); }
-.step-3 { fill: var(--step-3); }
-.floor-img { opacity: 0.32; mix-blend-mode: multiply; }
+.step-3 { fill: var(--step-floor); }
 
 .clock-face { fill: var(--lino); }
-.clock-track { fill: none; stroke: var(--step-edge); stroke-width: 10; }
+.clock-track { fill: none; stroke: var(--step-riser); stroke-width: 14; }
 .clock-left {
   fill: none;
   stroke: var(--ink);
-  stroke-width: 10;
+  stroke-width: 14;
   @media (prefers-reduced-motion: no-preference) {
     transition: stroke-dashoffset 250ms linear;
   }
 }
 .clock-ring.is-late .clock-left { stroke: var(--j0); }
+.bell-plate circle { fill: var(--lino); stroke: var(--ink); stroke-width: 6; }
 .clock {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: calc(var(--cy-pct, 50%));
   transform: translate(-50%, -50%);
   display: grid;
   justify-items: center;
   text-align: center;
   z-index: 1;
 }
+.pit-phone .clock { top: calc(284 / 560 * 100%); }
+.pit-phone-reveal .clock { top: calc(452 / 900 * 100%); }
 .clock-num {
   font-family: var(--font-board);
-  font-size: 5.1cqi;
+  font-size: calc(var(--u) * 64);
   font-weight: 800;
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
 }
-.clock-label { font-size: clamp(0.6875rem, 1.25cqi, 0.875rem); font-weight: 600; color: var(--ink-muted); }
+.clock-label { font-size: max(11px, calc(var(--u) * 15)); font-weight: 650; color: var(--ink-muted); }
 .clock.is-late .clock-label { color: var(--j0); }
-.pit-portrait .clock-num { font-size: 10cqi; }
-.pit-portrait .clock-label { font-size: 0.75rem; }
+.pit-phone .clock-num { font-size: calc(var(--u) * 76); }
+.pit-phone .clock-label { font-size: max(11px, calc(var(--u) * 19)); }
+/* after the bell the clock's place holds the bell itself */
+.bell-centre { gap: calc(var(--u) * 4); }
+.bell-round { font-family: var(--font-board); font-size: calc(var(--u) * 22); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.bell-word { font-family: var(--font-board); font-size: calc(var(--u) * 56); font-weight: 900; line-height: 0.9; }
+.pit-phone-reveal .bell-round { font-size: calc(var(--u) * 24); }
+.pit-phone-reveal .bell-word { font-size: calc(var(--u) * 62); }
 
 /* trade arcs: seller badge to buyer badge */
 .arc-line { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1 1; }
 .arc-new .arc-line { stroke-width: 4.5; }
 .arc-end { fill: var(--ink); }
-.arc-slip rect { fill: var(--paper); stroke: var(--step-edge); stroke-width: 1.5; }
+.arc-slip rect { fill: var(--paper); stroke: var(--step-line); stroke-width: 1.5; }
 .arc-slip text { font-family: var(--font-pencil); font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.arc-slip.arc-old { opacity: 0.85; }
 .arc {
   @media (prefers-reduced-motion: no-preference) {
     transition: opacity 400ms ease-out;
@@ -570,7 +653,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
     animation: arc-draw 700ms var(--ease-out) both;
   }
 }
-.arc .arc-slip, .arc .arc-end {
+.arc-slip, .arc .arc-end {
   @media (prefers-reduced-motion: no-preference) {
     animation: fade-in 260ms 480ms ease-out both;
   }
@@ -584,77 +667,85 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 }
 
 /* seats on the outer step */
-.seat {
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: max-content;
-  max-width: 34cqi;
-}
-.pos-0 { left: 50%; bottom: 1.6%; transform: translateX(-50%); flex-direction: column-reverse; }
-.pos-2 { left: 50%; top: 1.6%; transform: translateX(-50%); }
-.pos-1 { left: 1.2%; top: 42%; transform: translateY(-50%); align-items: flex-start; }
-.pos-3 { right: 1.2%; top: 42%; transform: translateY(-50%); align-items: flex-end; }
-.pit-portrait .pos-1, .pit-portrait .pos-3 { top: 46%; }
+/* seats on the outer step: badge, its quote tab and (after the bell) its card, each placed in units */
+.seat { display: contents; }
+.badge, .pencil, .card-flip, .deal-card { position: absolute; }
 
 .badge {
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 12px 5px 5px;
+  gap: calc(var(--u) * 8);
+  padding: calc(var(--u) * 6);
   border-radius: var(--radius);
   background: var(--j);
   color: var(--j-on);
+  overflow: hidden;
 }
 .badge-n {
+  flex: none;
   display: grid;
   place-items: center;
-  min-width: 2.25rem;
-  height: 2.25rem;
-  padding: 0 4px;
+  width: calc(var(--u) * 46);
+  height: calc(var(--u) * 46);
   border-radius: 2px;
   background: var(--paper);
   color: var(--ink);
-  font-size: 1.55rem;
+  font-size: calc(var(--u) * 32);
   font-weight: 900;
   font-stretch: 125%;
   line-height: 1;
 }
-.badge-txt { display: grid; line-height: 1.15; font-size: 0.8125rem; font-weight: 550; white-space: nowrap; }
-.badge-txt b { font-size: 1rem; font-weight: 800; }
-.badge-rank { margin-left: 4px; font-size: 1.25rem; font-weight: 900; font-stretch: 125%; line-height: 1; }
-.seat.is-me .badge { outline: 3px solid var(--ink); outline-offset: 2px; }
+.badge-txt { display: grid; min-width: 0; line-height: 1.12; font-size: max(10.5px, calc(var(--u) * 14.5)); font-weight: 550; white-space: nowrap; }
+.badge-txt b { font-size: max(12px, calc(var(--u) * 19)); font-weight: 800; }
+.badge-rank { margin-left: auto; padding-right: calc(var(--u) * 4); font-size: calc(var(--u) * 26); font-weight: 900; font-stretch: 125%; line-height: 1; }
+.seat.is-me .badge { outline: 3px solid var(--ink); outline-offset: -3px; }
 .seat.is-empty .badge { background: var(--step-2); color: var(--ink-muted); }
 .seat.is-empty .badge-n { background: var(--step-1); color: var(--ink-muted); }
+.pit-phone .badge, .pit-phone-reveal .badge { gap: calc(var(--u) * 6); padding: calc(var(--u) * 5); }
+.pit-phone .badge-n, .pit-phone-reveal .badge-n { width: calc(var(--u) * 42); height: calc(var(--u) * 42); font-size: calc(var(--u) * 29); }
+.pit-phone .badge-txt, .pit-phone-reveal .badge-txt { font-size: max(10px, calc(var(--u) * 17.5)); }
+.pit-phone .badge-txt b, .pit-phone-reveal .badge-txt b { font-size: max(11.5px, calc(var(--u) * 21)); }
+.pit-phone-reveal .badge-rank { font-size: calc(var(--u) * 26); padding-left: calc(var(--u) * 4); }
 
-/* each seat's quotes, pencilled on a slip under its badge */
+/* each seat's quotes: a pencilled paper tab glued to its badge */
 .pencil {
+  z-index: 2;
   list-style: none;
   margin: 0;
-  padding: 4px 10px 3px;
+  padding: calc(var(--u) * 7);
+  display: grid;
+  grid-auto-rows: calc(var(--u) * 22);
+  align-content: center;
   background: var(--paper);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-paper);
+  border: 1.5px solid var(--step-line);
   font-family: var(--font-pencil);
-  font-size: 1rem;
-  line-height: 1.3;
+  font-size: calc(var(--u) * 18);
+  line-height: calc(var(--u) * 22);
   white-space: nowrap;
-  rotate: -1.2deg;
+  box-shadow: var(--shadow-paper);
 }
-.pos-1 .pencil, .pos-2 .pencil { rotate: 1deg; }
+.tab-right .pencil {
+  grid-template-rows: repeat(2, calc(var(--u) * 22));
+  grid-auto-flow: column;
+  grid-auto-columns: calc(var(--u) * 104);
+  border-left: 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.tab-below .pencil { border-top: 0; border-radius: 0 0 var(--radius) var(--radius); }
+.pit-phone .pencil { padding: calc(var(--u) * 6); font-size: calc(var(--u) * 20); }
+.pit-phone .tab-right .pencil { grid-auto-columns: calc(var(--u) * 124); }
 .pencil-none { color: var(--ink-muted); }
 
 /* the deal: face-down cards slide out to each seat */
 .deal-card {
+  z-index: 3;
   display: block;
-  width: 3rem;
-  height: 4.2rem;
+  width: calc(var(--u) * 52);
+  height: calc(var(--u) * 72);
+  translate: -50% -50%;
   border-radius: var(--radius);
   background: var(--ink);
-  color: var(--paper);
   border: 3px solid var(--paper);
   box-shadow: var(--shadow-paper);
   @media (prefers-reduced-motion: no-preference) {
@@ -662,11 +753,11 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   }
 }
 @keyframes deal {
-  from { opacity: 0; transform: translate(var(--fx), var(--fy)) rotate(-12deg) scale(0.8); }
+  from { opacity: 0; transform: translate(calc(var(--u) * var(--fx)), calc(var(--u) * var(--fy))) rotate(-12deg) scale(0.8); }
 }
 
 /* the reveal: each hand flips face up at its badge */
-.card-flip { perspective: 900px; width: clamp(8.5rem, 21cqi, 13rem); }
+.card-flip { z-index: 3; perspective: 900px; }
 .card-inner { display: grid; transform-style: preserve-3d; }
 .card-flip.is-open .card-inner {
   transform: rotateY(180deg);
@@ -688,7 +779,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .card-back {
   display: grid;
   place-items: center;
-  min-height: 5.5rem;
+  min-height: calc(var(--u) * 120);
   background: var(--ink);
   border: 3px solid var(--paper);
   color: var(--paper);
@@ -696,45 +787,45 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 }
 .card-front {
   transform: rotateY(180deg);
-  display: grid;
-  gap: 4px;
-  padding: 8px 10px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--u) * 6) calc(var(--u) * 10);
+  padding: calc(var(--u) * 9) calc(var(--u) * 12) calc(var(--u) * 10);
   background: var(--paper);
-  border-top: 5px solid var(--j);
+  border-top: calc(var(--u) * 7) solid var(--j);
 }
-.card-order { font-family: var(--font-pencil); font-weight: 700; font-size: 1.3rem; line-height: 1.1; }
-.card-hand { display: flex; flex-wrap: wrap; gap: 2px 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.card-hand .short { color: var(--ink-muted); font-weight: 500; text-decoration: line-through; text-decoration-thickness: 1.5px; }
-.card-foot { font-size: var(--text-xs); color: var(--ink-muted); line-height: 1.3; }
-
-/* phone pit: smaller badges and slips, in container units */
-.pit-portrait .seat { gap: 5px; max-width: 46cqi; }
-.pit-portrait .badge { gap: 5px; padding: 3px 8px 3px 3px; }
-.pit-portrait .badge-n { min-width: 1.75rem; height: 1.75rem; font-size: 1.15rem; }
-.pit-portrait .badge-txt { font-size: 0.6875rem; }
-.pit-portrait .badge-txt b { font-size: 0.8125rem; }
-.pit-portrait .badge-rank { font-size: 1rem; }
-.pit-portrait .pencil { font-size: 0.8125rem; padding: 2px 7px 1px; }
-.pit-portrait .card-flip { width: 31cqi; }
-.pit-portrait .card-order { font-size: 1rem; }
-.pit-portrait .card-hand { font-size: 0.8125rem; gap: 0 6px; }
-.pit-portrait .card-front { padding: 6px 7px; }
-.pit-portrait .deal-card { width: 2.2rem; height: 3.1rem; }
+.card-order { flex-basis: 100%; font-family: var(--font-pencil); font-weight: 700; font-size: calc(var(--u) * 30); line-height: 1; }
+.card-hand { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 0 calc(var(--u) * 14); font-size: calc(var(--u) * 20); line-height: 1.2; }
+.card-hand > span { display: inline-flex; align-items: baseline; gap: calc(var(--u) * 3); color: var(--ink-muted); }
+.card-hand b { font-size: calc(var(--u) * 26); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink); }
+.card-hand .is-needed { color: var(--ink); }
+.card-hand .is-needed b { text-decoration: underline; text-decoration-thickness: calc(var(--u) * 3); text-underline-offset: calc(var(--u) * 4); text-decoration-color: var(--j); }
+/* the pencil stamp: filled, or what was still missing at the bell */
+.card-stamp {
+  padding: calc(var(--u) * 1) calc(var(--u) * 8);
+  border: 2px solid currentColor;
+  border-radius: var(--radius);
+  font-family: var(--font-pencil);
+  font-weight: 700;
+  font-size: max(12px, calc(var(--u) * 19));
+  line-height: 1.3;
+  rotate: -2deg;
+}
+.pit-wide .card-stamp { white-space: nowrap; font-size: max(12px, calc(var(--u) * 17.5)); }
+.card-stamp.is-filled { color: var(--ink); }
+.card-stamp.is-missed { color: var(--j0); }
+.card-foot { font-size: max(11px, calc(var(--u) * 14)); color: var(--ink-muted); line-height: 1.3; }
+.pit-phone-reveal .card-order { font-size: calc(var(--u) * 32); }
+.pit-phone-reveal .card-hand { font-size: calc(var(--u) * 22); gap: 0 calc(var(--u) * 12); }
+.pit-phone-reveal .card-hand b { font-size: calc(var(--u) * 28); }
+.pit-phone-reveal .card-stamp { font-size: max(12px, calc(var(--u) * 21)); }
 
 /* the front edge of the pit: your card, or the seat offer */
-.pit-front { display: grid; gap: 10px; margin-top: 16px; }
-@media (min-width: 60rem) {
-  .pit-front {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    z-index: 3;
-    width: min(21.5rem, 38%);
-    margin-top: 0;
-  }
-  .pit-settled .pit-front, .pit-dealing .pit-front { width: min(19rem, 32%); }
+.pit-front { display: grid; gap: 10px; margin-top: 14px; }
+.pit-front > .slip { justify-self: start; max-width: 34rem; }
+@media (min-width: 48rem) {
   /* seated: your card lies along the pit's front edge, one wide low card */
-  .pit-front:has(.ticket) { position: static; width: auto; margin-top: 12px; }
   .pit-front .ticket:not(.is-loading) {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "top top top" "order hand foot" "help help help";
@@ -800,24 +891,36 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .sheet-title { font-size: 1.6rem; font-weight: 900; font-stretch: 125%; line-height: 0.9; }
 .sheet-sub { margin-top: 6px; font-size: var(--text-sm); color: var(--ink-muted); }
 .sheet-foot { margin-top: 10px; font-size: var(--text-sm); color: var(--ink-muted); }
-.book-row { position: relative; display: grid; gap: 8px; padding-block: 12px; border-top: 2px solid var(--step-1); }
+/* one ruled line per suit: suit and takes on the first line, your note and your quote under them */
+.book-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 6.25rem) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "suit sell buy" "need quote quote";
+  align-items: center;
+  gap: 6px 8px;
+  padding-block: 10px;
+  border-top: 2px solid var(--step-1);
+}
 .book-row:first-of-type { margin-top: 10px; }
 .row-want::before {
   content: "";
   position: absolute;
   left: -18px;
-  top: 12px;
-  bottom: 12px;
+  top: 10px;
+  bottom: 10px;
   width: 6px;
   background: var(--j, var(--ink));
 }
-.book-suit { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.book-suit .suit { font-weight: 700; }
+.book-suit, .book-take { display: contents; }
+.book-suit .suit { grid-area: suit; font-weight: 700; }
 .book-suit .glyph { font-size: 1.35rem; }
-.book-need { font-family: var(--font-pencil); font-size: 1.05rem; color: var(--ink-muted); }
+.book-need { grid-area: need; align-self: start; padding-top: 10px; font-family: var(--font-pencil); font-size: 1.05rem; line-height: 1.1; color: var(--ink-muted); }
 .row-want .book-need { color: var(--ink); font-weight: 700; }
-.book-take { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.take { justify-content: space-between; padding: 0 10px 0 12px; }
+.book-take > [data-testid^="sell-"] { grid-area: sell; }
+.book-take > [data-testid^="buy-"] { grid-area: buy; }
+.quotebox { grid-area: quote; }
+.take { justify-content: space-between; gap: 6px; padding: 0 8px 0 10px; }
 /* a take you cannot hit still reads as a price on the sheet */
 .take:disabled { opacity: 1; background: transparent; color: var(--ink-muted); border-color: var(--step-2); border-style: dashed; cursor: not-allowed; }
 .take-px { font-size: 1.15rem; font-weight: 800; }
@@ -833,20 +936,23 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   font-weight: 850;
 }
 .quotebox { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* the price you write: a real field box, pencil inside */
 .px {
   width: 4.25rem;
   height: 40px;
-  padding: 0 4px;
-  border: 0;
-  border-bottom: 2px solid var(--ink);
-  border-radius: 0;
-  background: transparent;
+  padding: 0 6px;
+  border: 2px solid var(--ink-muted);
+  border-radius: var(--radius);
+  background: var(--field);
+  box-shadow: inset 0 2px 0 rgb(22 24 26 / 0.1);
   font-family: var(--font-pencil);
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 700;
+  line-height: 1;
   text-align: center;
 }
-.px:focus-visible { outline-offset: 0; }
+.px:hover { border-color: var(--ink); }
+.px:focus-visible { outline-offset: 1px; border-color: var(--ink); }
 .myquotes { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   min-height: 32px;
@@ -901,7 +1007,30 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 
 .story { margin-block: 24px 8px; padding-top: 20px; border-top: 2px solid var(--step-2); }
 .story h3 { font-size: clamp(1.6rem, 2.6vw, 2.2rem); font-weight: 900; font-stretch: 125%; line-height: 0.92; }
-.timeline { list-style: none; counter-reset: step; margin: 16px 0 0; padding: 0; display: grid; gap: 14px; max-width: 72ch; }
+.story-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px 48px; margin-top: 18px; align-items: start; }
+@media (min-width: 60rem) {
+  .story-cols { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+}
+.receipts-title { font-size: 1.25rem; font-weight: 850; font-stretch: 118%; line-height: 1; }
+.receipt-rows { list-style: none; counter-reset: rc; margin: 12px 0 0; padding: 0; }
+.receipt-rows li {
+  counter-increment: rc;
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 7.5rem) minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: baseline;
+  padding-block: 9px;
+  border-top: 2px solid var(--step-1);
+  font-size: var(--text-sm);
+}
+.receipt-rows li::before { content: counter(rc); font-size: 1.1rem; font-weight: 900; font-stretch: 125%; color: var(--ink-muted); }
+.rc-step { font-weight: 700; }
+.rc-links { display: flex; flex-wrap: wrap; gap: 4px 14px; font-weight: 600; }
+@media (max-width: 40rem) {
+  .receipt-rows li { grid-template-columns: 1.5rem minmax(0, 1fr); }
+  .rc-links { grid-column: 2; }
+}
+.timeline { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: 14px; max-width: 72ch; }
 .timeline li { counter-increment: step; display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); column-gap: 12px; }
 .timeline li::before {
   content: counter(step);
@@ -915,6 +1044,38 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .timeline h4 { font-size: 1.0625rem; font-weight: 750; }
 .timeline p { font-size: 0.9375rem; }
 .timeline a { font-weight: 600; }
+
+/* phones: your round at a glance, pinned to the bottom edge while the book scrolls */
+.cockpit { display: none; }
+@media (max-width: 40rem) {
+  .cockpit {
+    position: sticky;
+    bottom: 0;
+    z-index: 25;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 6px var(--gutter) calc(6px + env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-top: 5px solid var(--j);
+    box-shadow: 0 -1px 0 var(--step-edge), 0 -8px 16px -10px rgb(22 24 26 / 0.4);
+    @media (prefers-reduced-motion: no-preference) {
+      transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);
+    }
+  }
+  .cockpit.is-tucked { transform: translateY(110%); opacity: 0; pointer-events: none; }
+  .ck-order { font-family: var(--font-pencil); font-weight: 700; font-size: 1.3rem; line-height: 1; white-space: nowrap; }
+  .ck-held { display: flex; gap: 10px; font-size: var(--text-sm); white-space: nowrap; }
+  .ck-held > span { display: inline-flex; align-items: baseline; gap: 2px; padding-bottom: 1px; border-bottom: 3px solid var(--j); }
+  .ck-held > .is-ok { border-bottom-color: var(--ink); }
+  .ck-held b { font-weight: 800; }
+  .ck-chips { font-size: var(--text-sm); white-space: nowrap; }
+  .ck-chips b { font-size: 1.05rem; font-weight: 800; }
+  .ck-clock { font-family: var(--font-board); font-size: 1.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ck-clock.is-late { color: var(--j0); }
+}
 
 .table-foot { display: grid; gap: 8px; padding-block: 8px 8px; font-size: var(--text-sm); color: var(--ink-muted); }
 .seat-foot { color: var(--ink); }
