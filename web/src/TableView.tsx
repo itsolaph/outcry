@@ -21,13 +21,17 @@ import { useErNow, useLiveTable, useMySeat, useReveal } from "./lib/hooks";
 import { client, myEr, sessionKey } from "./lib/outcry";
 import { TxEntry, useTxLog } from "./lib/txlog";
 import { useWallet } from "./lib/wallet";
-import { AddrLink, Roll, Seat, Suit, Tick, TxLink, fmtClock, go, ordinal, quoteText, seatKind, toast } from "./ui";
+import { AddrLink, Card, Pip, Roll, Seat, Suit, Tick, TxLink, fmtClock, go, ordinal, quoteText, seatKind, toast, useChanges } from "./ui";
 
 const BONUS = 100;
 const SUIT_ONE = ["spade", "club", "heart", "diamond"];
 const SUIT_MANY = ["spades", "clubs", "hearts", "diamonds"];
 /** Prints shown on the live tape before "Show all". */
 const TAPE_SHORT = 10;
+/** Cards drawn in one stack of the hand; the count on the top card stays exact beyond it. */
+const STACK_MAX = 8;
+/** Trade lines on the table that carry their price; older lines stay as faint strokes. */
+const FELT_LABELS = 5;
 
 /** The action layer logs seats by index and by their former colour names; show them as seat numbers. */
 function txLabel(label: string): string {
@@ -191,7 +195,7 @@ export function TableView({ address }: { address: string }) {
       <div className="cols">
         <div className="col-main">
           {settled ? (
-            <Result t={t} mySeat={mySeat} busy={busy}>
+            <Result t={t} mySeat={mySeat} me={me} busy={busy}>
               {mySeat >= 0 ? (
                 <div className="after-actions">
                   <button className="btn btn-fill" disabled={!!busy} data-testid="next-round" onClick={() => run("Dealing the next round…", () => act.startRound(tablePk, t), "Next round requested.")}>
@@ -219,10 +223,10 @@ export function TableView({ address }: { address: string }) {
         </div>
 
         <div className="col-side">
+          {!settled ? <Seats t={t} me={me} mySeat={mySeat} /> : null}
           {trading ? <Tape t={t} mySeat={mySeat} me={me} /> : null}
           {settled ? <Scoreboard t={t} mySeat={mySeat} me={me} /> : null}
-          {settled ? <TapeReplay t={t} me={me} /> : null}
-          {!settled ? <Seats t={t} me={me} /> : null}
+          {settled ? <TapeReplay t={t} me={me} mySeat={mySeat} /> : null}
         </div>
       </div>
 
@@ -312,20 +316,30 @@ function Bell({ t, now, busy }: { t: TableState; now: number; busy: string | nul
 }
 
 /** After the bell the clock spot holds the result, at the clock's own scale. */
-function Result({ t, mySeat, busy, children }: { t: TableState; mySeat: number; busy: string | null; children?: ReactNode }) {
+function Result({ t, mySeat, me, busy, children }: { t: TableState; mySeat: number; me: string; busy: string | null; children?: ReactNode }) {
   const winner = t.ranks.indexOf(0);
   const seated = mySeat >= 0;
   const chips = seated ? t.scores[mySeat] - (t.filled[mySeat] ? BONUS : 0) : 0;
+  const order = [0, 1, 2, 3].sort((a, b) => t.ranks[a] - t.ranks[b]);
   return (
     <section className="bell reveal" data-testid="reveal">
-      {seated ? (
-        <h2 className="clock result" aria-label={`You finished ${ordinal(t.ranks[mySeat] + 1)} with ${t.scores[mySeat]}`}>
-          <span aria-hidden="true">{ordinal(t.ranks[mySeat] + 1)}</span>
-          <span aria-hidden="true">{t.scores[mySeat]}</span>
-        </h2>
-      ) : (
-        <h2 className="clock result">Bell</h2>
-      )}
+      <div className="result-row">
+        {seated ? (
+          <h2 className="clock result" aria-label={`You finished ${ordinal(t.ranks[mySeat] + 1)} with ${t.scores[mySeat]}`}>
+            <span aria-hidden="true">{ordinal(t.ranks[mySeat] + 1)}</span>
+          </h2>
+        ) : (
+          <h2 className="clock result">Bell</h2>
+        )}
+        <p className="finals" aria-label="Final scores, best first">
+          {order.map((i) => (
+            <span key={i} className={i === mySeat ? "is-me" : ""}>
+              <Seat seat={i} kind={seatKind(t, i, me)} />
+              <span className="num">{t.scores[i]}</span>
+            </span>
+          ))}
+        </p>
+      </div>
       <div className="drain" aria-hidden="true" />
       <p className="bell-note">
         <span>
@@ -398,40 +412,53 @@ function Ticket({ mine }: { mine: SeatState | null }) {
   return (
     <section className="order" data-testid="my-ticket" aria-label="Your private hand and order">
       <div className="sec-head">
-        <h2>Your order</h2>
-        <p>Only you can see this. Hold all of it at the bell for 100 more.</p>
+        <h2>Your hand</h2>
+        <p>Only you can see this. Hold your whole order at the bell for 100 more.</p>
       </div>
       <div className="order-main">
-        <p className="order-big" data-testid="my-order">
-          {mine.order.qtyA} <Suit s={mine.order.suitA} /> + {mine.order.qtyB} <Suit s={mine.order.suitB} />
-        </p>
         <div className="hand" data-testid="my-hand">
           {mine.hand.map((n, s) => {
             const short = need[s] - n;
+            const depth = Math.min(n, STACK_MAX);
             return (
-              <div key={s} className={`hold ${short > 0 ? "hold-short" : ""}`}>
-                <span className="hold-top">
-                  <Suit s={s} />
-                  <Tick v={n} className="hold-n num" />
+              <div key={s} className={`hold s${s} ${short > 0 ? "hold-short" : ""}`}>
+                <span className="stack" style={{ "--n": depth } as CSSProperties} aria-hidden="true">
+                  {n === 0 ? (
+                    <span className="pc pc-empty">
+                      <Pip s={s} className="pc-mid" />
+                    </span>
+                  ) : (
+                    Array.from({ length: depth }, (_, j) => <Card key={j} s={s} n={j === depth - 1 ? n : undefined} style={{ "--j": j } as CSSProperties} />)
+                  )}
                 </span>
-                <span className="hold-note">{short > 0 ? `need ${short}` : short < 0 ? `spare ${-short}` : need[s] ? "covered" : "none"}</span>
+                <span className="hold-note">
+                  <span className="sr-only">
+                    {n} {n === 1 ? SUIT_ONE[s] : SUIT_MANY[s]},{" "}
+                  </span>
+                  {short > 0 ? `need ${short}` : short < 0 ? `spare ${-short}` : need[s] ? "covered" : "none"}
+                </span>
               </div>
             );
           })}
         </div>
+        <div className="order-side">
+          <p className="order-big num" data-testid="my-order" aria-label={`Your order: ${mine.order.qtyA} ${SUIT_MANY[mine.order.suitA]} and ${mine.order.qtyB} ${SUIT_MANY[mine.order.suitB]}`}>
+            <span className="order-label">Order</span> {mine.order.qtyA} <Suit s={mine.order.suitA} /> + {mine.order.qtyB} <Suit s={mine.order.suitB} />
+          </p>
+          <p className="order-foot">
+            <span>
+              <b className="num" data-testid="my-chips">
+                <Tick v={mine.chips} />
+              </b>{" "}
+              chips
+            </span>
+            <span>
+              At the bell now: <b className="num">{mine.chips + (filled ? BONUS : 0)}</b>
+            </span>
+            <span>{filled ? "Order filled, +100" : "Order not filled"}</span>
+          </p>
+        </div>
       </div>
-      <p className="order-foot">
-        <span>
-          <b className="num" data-testid="my-chips">
-            <Tick v={mine.chips} />
-          </b>{" "}
-          chips
-        </span>
-        <span>
-          If the bell rang now: <b className="num">{mine.chips + (filled ? BONUS : 0)}</b>
-          {filled ? ", order filled (+100)" : ", order not filled"}
-        </span>
-      </p>
     </section>
   );
 }
@@ -454,48 +481,71 @@ function Book({ t, mySeat, me, mine, busy, run, tablePk }: { t: TableState; mySe
         const ask = bestAsk(t, s, mySeat);
         const want = need[s] - (mine?.hand[s] ?? 0);
         return (
-          <div className={`book-row ${want > 0 ? "row-want" : ""} ${seated ? "is-seated" : ""}`} key={s} data-testid={`book-row-${s}`}>
+          <div className={`book-row s${s} ${want > 0 ? "row-want" : ""} ${seated ? "is-seated" : ""}`} key={s} data-testid={`book-row-${s}`}>
             <div className="book-suit">
               <Suit s={s} withName />
               {seated ? <span className="book-need">{want > 0 ? `need ${want}` : mine!.hand[s] > 0 ? `${mine!.hand[s]} held` : "none held"}</span> : null}
             </div>
-            <div className="book-take">
-              <button
-                className={`take ${seated && bid ? "is-live" : ""}`}
-                data-testid={`sell-${s}`}
-                disabled={!seated || !bid || busy}
-                title={bid ? `Sell one ${SUIT_ONE[s]} to seat ${bid.seat + 1} at ${bid.price}` : "No bid"}
-                onClick={() => bid && run("Selling…", () => act.take(tablePk, mySeat, s, SIDE_BID, bid.seat, bid.price), `Sold 1 at ${bid.price}.`)}
-              >
-                <span className="take-side">Sell</span>
-                <span className="take-px num">{bid ? <Tick v={bid.price} /> : "–"}</span>
-                {bid ? (
-                  <span className={`seat is-${seatKind(t, bid.seat, me)}`} aria-hidden="true">
-                    {bid.seat + 1}
-                  </span>
-                ) : null}
-              </button>
-              <button
-                className={`take ${seated && ask ? "is-live" : ""}`}
-                data-testid={`buy-${s}`}
-                disabled={!seated || !ask || busy}
-                title={ask ? `Buy one ${SUIT_ONE[s]} from seat ${ask.seat + 1} at ${ask.price}` : "No offer"}
-                onClick={() => ask && run("Buying…", () => act.take(tablePk, mySeat, s, SIDE_ASK, ask.seat, ask.price), `Bought 1 at ${ask.price}.`)}
-              >
-                <span className="take-side">Buy</span>
-                <span className="take-px num">{ask ? <Tick v={ask.price} /> : "–"}</span>
-                {ask ? (
-                  <span className={`seat is-${seatKind(t, ask.seat, me)}`} aria-hidden="true">
-                    {ask.seat + 1}
-                  </span>
-                ) : null}
-              </button>
-            </div>
+            <Take
+              side="sell"
+              s={s}
+              q={bid}
+              kind={bid ? seatKind(t, bid.seat, me) : "bot"}
+              live={seated && !!bid}
+              disabled={!seated || !bid || busy}
+              title={bid ? `Sell one ${SUIT_ONE[s]} to seat ${bid.seat + 1} at ${bid.price}` : "No bid"}
+              onClick={() => bid && run("Selling…", () => act.take(tablePk, mySeat, s, SIDE_BID, bid.seat, bid.price), `Sold 1 at ${bid.price}.`)}
+            />
+            <Take
+              side="buy"
+              s={s}
+              q={ask}
+              kind={ask ? seatKind(t, ask.seat, me) : "bot"}
+              live={seated && !!ask}
+              disabled={!seated || !ask || busy}
+              title={ask ? `Buy one ${SUIT_ONE[s]} from seat ${ask.seat + 1} at ${ask.price}` : "No offer"}
+              onClick={() => ask && run("Buying…", () => act.take(tablePk, mySeat, s, SIDE_ASK, ask.seat, ask.price), `Bought 1 at ${ask.price}.`)}
+            />
             {seated ? <QuoteBox t={t} s={s} mySeat={mySeat} mine={mine!} want={want} busy={busy} run={run} tablePk={tablePk} /> : null}
           </div>
         );
       })}
     </section>
+  );
+}
+
+/** A take button: the best price on one side of one suit. The price flashes when the best quote changes. */
+function Take({
+  side,
+  s,
+  q,
+  kind,
+  live,
+  disabled,
+  title,
+  onClick,
+}: {
+  side: "sell" | "buy";
+  s: number;
+  q: { seat: number; price: number } | null;
+  kind: string;
+  live: boolean;
+  disabled: boolean;
+  title: string;
+  onClick: () => void;
+}) {
+  const changes = useChanges(q?.price ?? 0);
+  return (
+    <button className={`take ${live ? "is-live" : ""}`} data-testid={`${side}-${s}`} disabled={disabled} title={title} onClick={onClick}>
+      {changes > 0 ? <span key={changes} className="flash" aria-hidden="true" /> : null}
+      <span className="take-side">{side === "sell" ? "Sell" : "Buy"}</span>
+      <span className="take-px num">{q ? <Tick v={q.price} /> : "–"}</span>
+      {q ? (
+        <span className={`seat is-${kind}`} aria-hidden="true">
+          {q.seat + 1}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -512,6 +562,7 @@ function QuoteBox({ t, s, mySeat, mine, want, busy, run, tablePk }: { t: TableSt
     run(side === SIDE_BID ? "Bidding…" : "Offering…", () => act.quote(tablePk, t, mySeat, s, side, price), side === SIDE_BID ? `Bid ${price} posted.` : `Offer ${price} posted.`);
   return (
     <div className="quote">
+      {myBid || myAsk ? (
       <span className="my-quotes">
         {myBid ? (
           <button className="token" aria-label={`Cancel my bid at ${myBid}`} title="Cancel my bid" onClick={() => run("Cancelling…", () => act.cancel(tablePk, t, mySeat, s, SIDE_BID), "Bid cancelled.")}>
@@ -524,6 +575,7 @@ function QuoteBox({ t, s, mySeat, mine, want, busy, run, tablePk }: { t: TableSt
           </button>
         ) : null}
       </span>
+      ) : null}
       <label className="sr-only" htmlFor={`px-${s}`}>
         Price for {SUIT_MANY[s]}
       </label>
@@ -548,7 +600,7 @@ function PrintRow({ p, t, me, className }: { p: TradePrint; t: TableState; me: s
       <span className="print-time num" aria-label={`${at} before the bell`}>
         {at}
       </span>
-      <span className="print-px">
+      <span className={`print-px s${p.suit}`}>
         <Suit s={p.suit} /> <span className="num">{p.price}</span>
       </span>
       <span className="print-who">
@@ -589,37 +641,148 @@ function Tape({ t, mySeat, me }: { t: TableState; mySeat: number; me: string }) 
 
 // ------------------------------------------------------------------ seats (who is here and what they quote)
 
-function Seats({ t, me }: { t: TableState; me: string }) {
+function Seats({ t, me, mySeat }: { t: TableState; me: string; mySeat: number }) {
+  const trading = t.phase === "trading";
   return (
-    <section className="seats" aria-label="Seats">
+    <section className="seats" aria-label="Table">
       <div className="sec-head">
-        <h2>Seats</h2>
-        <p>{t.phase === "trading" ? "Each seat’s own quotes: bid at offer." : null}</p>
+        <h2>Table</h2>
+        <p>{trading ? "A line is a trade. Its dot is the buyer." : null}</p>
       </div>
-      <ul className="seat-rows">
-        {t.seats.map((_, i) => {
-          const kind = seatKind(t, i, me);
-          const quotes = [0, 1, 2, 3].map((s) => ({ s, q: quoteText(t.bids[s][i], t.asks[s][i]) })).filter((x) => x.q);
+      <Felt t={t} me={me} mySeat={mySeat} />
+      <ul className="seat-legend">
+        {(["you", "player", "bot"] as const).map((kind) => {
+          const seats = [0, 1, 2, 3].filter((i) => seatKind(t, i, me) === kind);
+          if (!seats.length) return null;
           return (
-            <li key={i} className={kind === "you" ? "is-me" : ""}>
-              <Seat seat={i} kind={kind} />
-              <span className="seat-name">{kind === "you" ? "You" : kind === "player" ? "Player" : "House bot"}</span>
-              <span className="seat-quotes">
-                {t.phase !== "trading"
-                  ? null
-                  : quotes.length === 0
-                    ? "No quotes"
-                    : quotes.map(({ s, q }) => (
-                        <span key={s} title={`${SUIT_MANY[s]}: bid ${t.bids[s][i] || "none"}, offer ${t.asks[s][i] || "none"}`}>
-                          <Suit s={s} /> <Tick v={q} className="num" />
-                        </span>
-                      ))}
-              </span>
+            <li key={kind} className={kind === "you" ? "is-me" : ""}>
+              {seats.map((i) => (
+                <Seat key={i} seat={i} kind={kind} />
+              ))}
+              <span>{kind === "you" ? "You" : kind === "player" ? (seats.length > 1 ? "Players" : "Player") : seats.length > 1 ? "House bots" : "House bot"}</span>
             </li>
           );
         })}
       </ul>
     </section>
+  );
+}
+
+/** The table from above, in a 400 by 280 box: one circle, a seat at its bottom, left, top and right. */
+const FELT = { w: 400, h: 280, cx: 200, cy: 140 };
+const FELT_AT = [
+  { x: 200, y: 228, qx: 200, qy: 263, side: "bottom" },
+  { x: 112, y: 140, qx: 92, qy: 140, side: "left" },
+  { x: 200, y: 52, qx: 200, qy: 17, side: "top" },
+  { x: 288, y: 140, qx: 308, qy: 140, side: "right" },
+];
+/** How far the nth trade between the same two seats bows away from the straight line, so repeats fan out. */
+const BOW_ACROSS = [12, -12, 34, -34, 56];
+const BOW_CORNER = [0, 19, -16, 37, 52];
+const at = (x: number, y: number): CSSProperties => ({ left: `${(x / FELT.w) * 100}%`, top: `${(y / FELT.h) * 100}%` });
+
+/**
+ * You sit at the bottom (seat 1 when watching). Each seat shows its live quotes, and every trade of the round
+ * is a suit-coloured line from seller to buyer: the newest is the strongest, older ones fade. `upto` replays
+ * the round up to that print.
+ */
+function Felt({ t, me, mySeat, upto }: { t: TableState; me: string; mySeat: number; upto?: number }) {
+  const base = mySeat >= 0 ? mySeat : 0;
+  const spot = (i: number) => FELT_AT[(i - base + 4) % 4];
+  const prints = roundTape(t);
+  const last = upto === undefined || upto < 0 ? prints.length - 1 : Math.min(upto, prints.length - 1);
+  const nth: Record<string, number> = {};
+  const taken: { x: number; y: number }[] = [];
+  const lines = prints.map((p, k) => {
+    const lo = spot(Math.min(p.seller, p.buyer));
+    const hi = spot(Math.max(p.seller, p.buyer));
+    const pair = `${Math.min(p.seller, p.buyer)}-${Math.max(p.seller, p.buyer)}`;
+    const n = (nth[pair] = (nth[pair] ?? -1) + 1);
+    const len = Math.hypot(hi.x - lo.x, hi.y - lo.y) || 1;
+    // unit normal of the seat-to-seat line, turned towards the table's centre when the line is a corner chord
+    let nx = -(hi.y - lo.y) / len;
+    let ny = (hi.x - lo.x) / len;
+    const mx = (lo.x + hi.x) / 2;
+    const my = (lo.y + hi.y) / 2;
+    const across = Math.hypot(mx - FELT.cx, my - FELT.cy) < 1;
+    if (!across && nx * (FELT.cx - mx) + ny * (FELT.cy - my) < 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+    const bow = (across ? BOW_ACROSS : BOW_CORNER)[n % 5];
+    const from = spot(p.seller);
+    const to = spot(p.buyer);
+    const ux = (to.x - from.x) / len;
+    const uy = (to.y - from.y) / len;
+    const x1 = from.x + ux * 19;
+    const y1 = from.y + uy * 19;
+    const x2 = to.x - ux * 21;
+    const y2 = to.y - uy * 21;
+    const cx = mx + nx * bow * 2;
+    const cy = my + ny * bow * 2;
+    // The price sits at the line's midpoint; if an earlier print's price is already there it slides along
+    // the line. Earlier prints never move for later ones, so a label keeps its place for the whole round.
+    let lx = 0;
+    let ly = 0;
+    for (const f of [0.5, 0.34, 0.66, 0.22, 0.78]) {
+      lx = (1 - f) * (1 - f) * x1 + 2 * (1 - f) * f * cx + f * f * x2;
+      ly = (1 - f) * (1 - f) * y1 + 2 * (1 - f) * f * cy + f * f * y2;
+      if (!taken.some((q) => Math.abs(q.x - lx) < 27 && Math.abs(q.y - ly) < 19)) break;
+    }
+    taken.push({ x: lx, y: ly });
+    const age = last - k;
+    return {
+      p,
+      key: `${p.slot}-${k}`,
+      d: `M${x1.toFixed(1)} ${y1.toFixed(1)}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`,
+      x2,
+      y2,
+      lx,
+      ly,
+      age,
+      opacity: age < 0 ? 0 : age === 0 ? 1 : Math.max(0.25, 0.85 - age * 0.15),
+    };
+  });
+  return (
+    <div className="felt" role="group" aria-label="The table from above">
+      <svg viewBox={`0 0 ${FELT.w} ${FELT.h}`} aria-hidden="true" focusable="false">
+        <circle className="felt-top" cx={FELT.cx} cy={FELT.cy} r="88" />
+        {lines.map((l) => (
+          <g key={l.key} className={`trade s${l.p.suit} ${l.age === 0 ? "is-newest" : ""}`} style={{ opacity: l.opacity }}>
+            <path d={l.d} />
+            <circle cx={l.x2} cy={l.y2} r="3.2" />
+          </g>
+        ))}
+      </svg>
+      {lines
+        .filter((l) => l.age >= 0 && l.age < FELT_LABELS)
+        .map((l) => (
+          <span key={l.key} className={`trade-px num s${l.p.suit}`} style={at(l.lx, l.ly)} aria-hidden="true">
+            {l.p.price}
+          </span>
+        ))}
+      {t.seats.map((_, i) => {
+        const s = spot(i);
+        const quotes = t.phase === "trading" ? [0, 1, 2, 3].map((suit) => ({ suit, q: quoteText(t.bids[suit][i], t.asks[suit][i]) })).filter((x) => x.q) : [];
+        return (
+          <div key={i} className="felt-seat-group" role="group" aria-label={`Seat ${i + 1}`}>
+            <span className="felt-seat" style={at(s.x, s.y)}>
+              <Seat seat={i} kind={seatKind(t, i, me)} />
+            </span>
+            {quotes.length ? (
+              <span className={`felt-quotes is-${s.side}`} style={at(s.qx, s.qy)}>
+                {quotes.map(({ suit, q }) => (
+                  <span key={suit} className={`s${suit}`} title={`${SUIT_MANY[suit]}: bid ${t.bids[suit][i] || "none"}, offer ${t.asks[suit][i] || "none"}`}>
+                    <Suit s={suit} />
+                    <Tick v={q} className="num" />
+                  </span>
+                ))}
+              </span>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -630,7 +793,7 @@ function Hands({ t, me, mySeat, reveal }: { t: TableState; me: string; mySeat: n
     <section className="hands" aria-label="Hands at the bell">
       <div className="sec-head">
         <h2>Hands at the bell</h2>
-        <p>Order, cards held, chips.</p>
+        <p>Raised cards count towards the order.</p>
       </div>
       <ol className="hand-rows">
         {[0, 1, 2, 3].map((i) => {
@@ -638,25 +801,32 @@ function Hands({ t, me, mySeat, reveal }: { t: TableState; me: string; mySeat: n
           const kind = seatKind(t, i, me);
           const need = s ? orderRequirement(s.order) : [0, 0, 0, 0];
           const gaps = s ? need.map((n, k) => ({ k, gap: n - s.hand[k] })).filter((x) => x.gap > 0) : [];
+          // face down until the seat opens: eight backs, as dealt; then the real hand, sorted by suit
+          const cards: ({ k: number; counted: boolean; lead: boolean } | null)[] = s
+            ? s.hand.flatMap((n, k) => Array.from({ length: n }, (_, j) => ({ k, counted: j < need[k], lead: j === 0 })))
+            : Array.from({ length: 8 }, () => null);
           return (
-            <li key={i} className={`card-flip ${s ? "is-open" : ""} ${i === mySeat ? "is-me" : ""}`} style={{ "--d": `${i * 70}ms` } as CSSProperties} data-testid="revealed-seat">
+            <li key={i} className={`card-flip ${s ? "is-open" : ""} ${i === mySeat ? "is-me" : ""}`} style={{ "--d": `${i * 90}ms` } as CSSProperties} data-testid="revealed-seat">
               <span className="hr-who">
                 <Seat seat={i} kind={kind} />
                 <span>{kind === "you" ? "You" : kind === "player" ? "Player" : "House bot"}</span>
               </span>
+              <span className={`hr-cards ${cards.length > 10 ? "is-tight" : ""}`} aria-hidden="true">
+                {cards.map((c, j) => (
+                  <span key={j} className={`pc pc-flip ${c ? `s${c.k}` : ""} ${c?.counted ? "is-counted" : ""} ${c?.lead && j ? "is-lead" : ""}`} style={{ "--i": j } as CSSProperties}>
+                    <span className="pc-turn">
+                      <span className="pc-face">{c ? <Pip s={c.k} className="pc-mid" /> : null}</span>
+                      <span className="pc-back" />
+                    </span>
+                  </span>
+                ))}
+              </span>
               {s ? (
-                <span className="card-front">
+                <span className="hr-text">
                   <span className="hr-order num" aria-label="Order">
                     {s.order.qtyA} <Suit s={s.order.suitA} /> + {s.order.qtyB} <Suit s={s.order.suitB} />
                   </span>
-                  <span className="hr-hand" aria-label="Hand at the bell">
-                    {s.hand.map((n, k) => (
-                      <span key={k} className={need[k] ? "is-needed" : ""}>
-                        <Suit s={k} />
-                        <span className="num">{n}</span>
-                      </span>
-                    ))}
-                  </span>
+                  <span className="sr-only">Hand at the bell: {s.hand.map((n, k) => `${n} ${n === 1 ? SUIT_ONE[k] : SUIT_MANY[k]}`).join(", ")}.</span>
                   <span className={`hr-verdict ${t.filled[i] ? "is-filled" : ""}`}>
                     {t.filled[i] ? (
                       "Filled"
@@ -679,7 +849,7 @@ function Hands({ t, me, mySeat, reveal }: { t: TableState; me: string; mySeat: n
                   </span>
                 </span>
               ) : (
-                <span className="card-back">Opening…</span>
+                <span className="hr-wait">Opening…</span>
               )}
             </li>
           );
@@ -720,7 +890,7 @@ function Scoreboard({ t, mySeat, me }: { t: TableState; mySeat: number; me: stri
   );
 }
 
-function TapeReplay({ t, me }: { t: TableState; me: string }) {
+function TapeReplay({ t, me, mySeat }: { t: TableState; me: string; mySeat: number }) {
   const prints = roundTape(t);
   const [step, setStep] = useState(-1);
   useEffect(() => {
@@ -740,6 +910,7 @@ function TapeReplay({ t, me }: { t: TableState; me: string }) {
           </button>
         ) : null}
       </div>
+      <Felt t={t} me={me} mySeat={mySeat} upto={step} />
       {prints.length === 0 ? <p className="empty">Nobody traded this round.</p> : null}
       <ol className={`prints ${step >= 0 ? "is-replaying" : ""}`}>
         {prints.map((p, k) => (

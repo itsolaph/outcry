@@ -1,9 +1,19 @@
-import { useMemo, useState } from "react";
+import { CSSProperties, useMemo, useState } from "react";
 import { TableState, canJoin, freeSeats, seatOf } from "@outcry/client";
 import { HOUSE_TABLES, HUMAN_GRACE_SECS } from "./config";
 import { useErNow, useTables } from "./lib/hooks";
 import { sessionKey } from "./lib/outcry";
-import { Roll, Seat, Tick, fmtClock, go, phaseText, seatKind } from "./ui";
+import { Card, Roll, Seat, Suit, Tick, fmtClock, go, phaseText, seatKind } from "./ui";
+
+/** The hero hand: eight cards, as every seat is dealt. */
+const HERO_HAND = [0, 0, 0, 2, 2, 1, 3, 3];
+
+/** Last print of each suit in the table's current round (null where that suit has not traded). */
+function lastPrices(t: TableState): (number | null)[] {
+  const last: (number | null)[] = [null, null, null, null];
+  for (const p of t.tape) if (p.round === t.round) last[p.suit] = p.price;
+  return last;
+}
 
 /** Pick where "Play now" seats a guest: a joinable table now, else the one whose bell is next. */
 export function pickTable(tables: Record<string, TableState | null>, now: number): { address: string; wait: number } | null {
@@ -39,6 +49,13 @@ export function Lobby() {
   return (
     <main className="lobby container">
       <section className="hero">
+        <div className="fan" aria-hidden="true">
+          <div className="fan-sway">
+            {HERO_HAND.map((suit, i) => (
+              <Card key={i} s={suit} style={{ "--i": i } as CSSProperties} />
+            ))}
+          </div>
+        </div>
         <h1>Trade your hand before the bell rings.</h1>
         <p className="lede">Eight cards, a secret order, sixty seconds. Fill your order and finish with the most chips.</p>
         <div className="hero-actions">
@@ -78,6 +95,8 @@ export function Lobby() {
             const seated = t ? seatOf(t, me) >= 0 : false;
             const open = !!t && t.phase === "settled" && now - t.tradeEndTs < HUMAN_GRACE_SECS + 5;
             const left = t && t.phase === "trading" ? Math.max(0, t.tradeEndTs - now) : null;
+            const last = t ? lastPrices(t) : null;
+            const traded = !!last && last.some((p) => p !== null);
             return (
               <li key={h.address}>
                 <a className={`pit-row ${t ? "" : "is-loading"}`} href={`#/t/${h.address}`} data-testid="lobby-table">
@@ -101,6 +120,16 @@ export function Lobby() {
                       : loaded
                         ? "Unreachable"
                         : "Loading"}
+                  </span>
+                  <span className="pit-last" role="group" aria-label={traded ? "Last price of each suit this round" : undefined}>
+                    {traded
+                      ? last!.map((p, suit) => (
+                          <span key={suit} className={`s${suit} ${p === null ? "is-none" : ""}`}>
+                            <Suit s={suit} />
+                            <span className="num">{p === null ? "–" : <Tick v={p} />}</span>
+                          </span>
+                        ))
+                      : null}
                   </span>
                   <span className="pit-seats" role="group" aria-label={t ? `${free} of 4 seats free` : undefined}>
                     {t ? t.seats.map((_, i) => <Seat key={i} seat={i} kind={seatKind(t, i, me)} />) : null}

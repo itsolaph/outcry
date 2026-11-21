@@ -7,7 +7,7 @@ import { initRecord } from "./lib/actions";
 import { client, sessionKey } from "./lib/outcry";
 import { useSeatKeeper } from "./lib/seatkeeper";
 import { connectWallet, disconnectWallet, useWallet, walletPubkey } from "./lib/wallet";
-import { AddrLink, Toasts, toast, useHashRoute } from "./ui";
+import { AddrLink, BellMark, Toasts, toast, useHashRoute } from "./ui";
 
 export function App() {
   useSeatKeeper();
@@ -20,8 +20,9 @@ export function App() {
       {tableMatch ? <TableView key={tableMatch[1]} address={tableMatch[1]} /> : path === "/how" ? <HowItWorks /> : <Lobby />}
       <footer className="foot">
         <div className="container foot-in">
-          <p>Outcry runs on Solana devnet and a MagicBlock private ephemeral rollup. Play money only.</p>
-          <a href="#/how">How it works</a>
+          <p>
+            Outcry runs on Solana devnet and a MagicBlock private ephemeral rollup. Play money only. <a href="#/how">How it works</a>
+          </p>
         </div>
       </footer>
     </>
@@ -33,6 +34,7 @@ function TopBar({ route }: { route: string }) {
     <header className="topbar">
       <nav className="container topbar-in" aria-label="Main">
         <a className="brand" href="#/">
+          <BellMark />
           Outcry
         </a>
         <a className="nav" href="#/" aria-current={route === "/" ? "page" : undefined}>

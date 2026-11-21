@@ -1,8 +1,7 @@
-import { ReactNode, useEffect, useState, useSyncExternalStore } from "react";
+import { CSSProperties, ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SUITS, TableState } from "@outcry/client";
 import { explorerAddress, explorerTx } from "./config";
 
-export const SUIT_GLYPH = ["♠", "♣", "♥", "♦"];
 export const SUIT_NAME = SUITS;
 
 export type SeatKind = "you" | "player" | "bot";
@@ -14,15 +13,70 @@ export function seatKind(t: TableState, i: number, me: string): SeatKind {
   return s.kind === "human" ? (s.owner.toBase58() === me ? "you" : "player") : "bot";
 }
 
+/** The four pips, drawn rather than typed so no platform swaps in an emoji. Four-colour deck: the class `s0..s3` sets the colour. */
+export function Pip({ s, className = "" }: { s: number; className?: string }) {
+  return (
+    <svg className={`pip ${className}`} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {s === 0 ? (
+        <path d="M12 2.2C8.6 6.4 2.8 9.6 2.8 14.2c0 2.8 2.1 4.7 4.6 4.7 1.5 0 2.8-.6 3.7-1.7-.2 2-.9 3.4-2.3 4.6h6.4c-1.4-1.2-2.1-2.6-2.3-4.6.9 1.1 2.2 1.7 3.7 1.7 2.5 0 4.6-1.9 4.6-4.7 0-4.6-5.8-7.8-9.2-12z" />
+      ) : s === 1 ? (
+        <>
+          <circle cx="12" cy="7.3" r="4.5" />
+          <circle cx="6.9" cy="14.1" r="4.5" />
+          <circle cx="17.1" cy="14.1" r="4.5" />
+          <circle cx="12" cy="12.3" r="2.8" />
+          <path d="M11.3 13.5c0 3.9-.9 6.6-2.7 8.3h6.8c-1.8-1.7-2.7-4.4-2.7-8.3z" />
+        </>
+      ) : s === 2 ? (
+        <path d="M12 21.4C5.4 15.8 2.5 12.4 2.5 8.5c0-3 2.3-5.3 5.1-5.3 1.8 0 3.4.9 4.4 2.4 1-1.5 2.6-2.4 4.4-2.4 2.8 0 5.1 2.3 5.1 5.3 0 3.9-2.9 7.3-9.5 12.9z" />
+      ) : (
+        <path d="M12 1.8c1.8 3.8 4.5 7.3 7.8 10.2-3.3 2.9-6 6.4-7.8 10.2-1.8-3.8-4.5-7.3-7.8-10.2 3.3-2.9 6-6.4 7.8-10.2z" />
+      )}
+    </svg>
+  );
+}
+
 export function Suit({ s, withName = false }: { s: number; withName?: boolean }) {
   return (
     <span className={`suit s${s}`} title={SUIT_NAME[s]}>
-      <span className="glyph" aria-hidden="true">
-        {SUIT_GLYPH[s]}
-      </span>
+      <Pip s={s} />
       {withName ? <span className="suit-name"> {SUIT_NAME[s]}</span> : <span className="sr-only">{SUIT_NAME[s]}</span>}
     </span>
   );
+}
+
+/** One playing card, face up. The deck has no ranks, so a face is its suit: a corner pip (with the count when
+ *  the card tops a stack) and a large pip. */
+export function Card({ s, n, className = "", style }: { s: number; n?: number; className?: string; style?: CSSProperties }) {
+  return (
+    <span className={`pc s${s} ${n !== undefined ? "pc-top" : ""} ${className}`} style={style} aria-hidden="true">
+      <span className="pc-idx">
+        {n !== undefined ? <Tick v={n} className="pc-n num" /> : null}
+        <Pip s={s} />
+      </span>
+      <Pip s={s} className="pc-mid" />
+      <Pip s={s} className="pc-foot" />
+    </span>
+  );
+}
+
+/** The Outcry mark: the opening bell, a dome with its striker knob on a base plate. */
+export function BellMark() {
+  return (
+    <svg className="bell-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="5" r="1.9" />
+      <path d="M11 6h2v2.2h-2z" />
+      <path d="M3.5 17a8.5 8.5 0 0 1 17 0z" />
+      <rect x="1.5" y="18.5" width="21" height="2.8" rx="1.4" />
+    </svg>
+  );
+}
+
+/** Counts how many times `v` has changed since mount: 0 until the first change, so a flash keyed on it never fires on load. */
+export function useChanges(v: unknown): number {
+  const ref = useRef({ v, n: 0 });
+  if (ref.current.v !== v) ref.current = { v, n: ref.current.n + 1 };
+  return ref.current.n;
 }
 
 /** A seat is its number in a small circle: filled for you, ink ring for a player, quiet ring for a house bot. */
@@ -50,11 +104,19 @@ export function Tick({ v, className = "" }: { v: ReactNode; className?: string }
 export function Roll({ text }: { text: string }) {
   return (
     <>
-      {[...text].map((ch, i) => (
-        <span key={`${i}-${ch}`} className={/[0-9]/.test(ch) ? "digit" : "sep"}>
-          {ch}
-        </span>
-      ))}
+      {[...text].map((ch, i) =>
+        /[0-9]/.test(ch) ? (
+          <span key={i} className="digit">
+            <span key={ch} className="digit-in">
+              {ch}
+            </span>
+          </span>
+        ) : (
+          <span key={i} className="sep">
+            {ch}
+          </span>
+        ),
+      )}
     </>
   );
 }

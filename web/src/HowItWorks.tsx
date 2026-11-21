@@ -1,5 +1,6 @@
+import { CSSProperties } from "react";
 import { PROGRAM_ID, TEE_RPC } from "./config";
-import { AddrLink } from "./ui";
+import { AddrLink, Card } from "./ui";
 
 export function HowItWorks() {
   return (
@@ -21,6 +22,18 @@ export function HowItWorks() {
               and 2 diamonds”. Post a bid or an offer on any suit, or take someone else’s. When the bell rings, your score is
               your chips, plus 100 if you hold your whole order.
             </p>
+            <figure className="deck">
+              <div className="hand" aria-hidden="true">
+                {[0, 1, 2, 3].map((s) => (
+                  <span key={s} className={`stack s${s}`} style={{ "--n": 8 } as CSSProperties}>
+                    {Array.from({ length: 8 }, (_, j) => (
+                      <Card key={j} s={s} n={j === 7 ? 8 : undefined} style={{ "--j": j } as CSSProperties} />
+                    ))}
+                  </span>
+                ))}
+              </div>
+              <figcaption>The whole deck: eight spades, eight clubs, eight hearts, eight diamonds. No ranks.</figcaption>
+            </figure>
           </section>
           <section>
             <h2>The trading floor is an Ephemeral Rollup</h2>
