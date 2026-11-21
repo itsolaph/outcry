@@ -3,6 +3,7 @@
  * nav: rebuilt, ink on lino, wordmark, Lobby, How it works, guest key, wallet menu · signature: the pit, a stepped octagon with jacket badges, trade arcs, the bell clock and the reveal flip · states: skeleton, loading, empty, watching, queued, seated, dealing, trading, settled, rejected, disabled, wallet open
  * axes: light/grotesk-wide/four-jacket · posture: quiet floor, loud pit · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: E, the pit has to carry live quotes, arcs and four flipped cards on a 390px phone, so every pit element is laid out in drawing units and collision-checked (slips skip any spot over a badge, tab or the clock; phones keep three arcs and one slip), status messages dock in a reserved header slot, and a phone bar keeps order, held, chips and clock in view while the book scrolls */
+/* Hallmark · waive 30a · ♠ ♣ ♥ ♦ in .suit, .print-px, .pencil, .ticket, .take, the board strip and the reveal hands · these are the game's four card suits, set as text in the UI face, not emoji icons; every quote, trade and order is written with them */
 /* Hallmark · waive 24b · .pencil, .badge, .card-front, .stamp, .slip, .sheet, .take · paper slips and badges are hand-set in 1-3px offsets so paper reads as cut and pencilled by hand, not gridded */
 
 /* ------------------------------------------------------------------ tokens */
@@ -17,9 +18,10 @@
   --step-edge: #8e9384;
   --step-riser: #6b7063;
   --step-line: #4f544a;
-  --field: #ffffff;
+  --field: #fefdf8;
   --ink: #16181a;
   --ink-muted: #4c5048;
+  --ink-quiet: #43473f;
   --paper: #fbfaf5;
   --on-jacket: #ffffff;
   /* jackets: the only saturated colours */
@@ -39,6 +41,8 @@
 
   --radius: 3px;
   --shadow-paper: 0 1px 0 #8e9384, 0 6px 14px -8px rgb(22 24 26 / 0.35);
+  --shadow-field: inset 0 2px 0 rgb(22 24 26 / 0.1);
+  --shadow-cockpit: 0 -1px 0 var(--step-edge), 0 -8px 16px -10px rgb(22 24 26 / 0.4);
   --focus: var(--ink);
 
   --text-xs: 0.75rem;
@@ -286,7 +290,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   min-width: 0;
   max-width: 44rem;
   padding: 6px 12px 6px 10px;
-  border-left: 5px solid var(--ink);
+  border: 1px solid var(--step-edge);
   font-size: var(--text-sm);
   font-weight: 550;
   line-height: 1.3;
@@ -299,8 +303,11 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   }
 }
 .toast-text { min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-.toast-bad { border-left-color: var(--j0); color: var(--j0); }
-.toast-info { border-left-color: var(--step-edge); }
+/* a small square marker leads each message: ink, or red beside the red words of a rejection */
+.toast::before { content: ""; flex: none; align-self: center; width: 8px; height: 8px; background: var(--ink); }
+.toast-bad { border-color: var(--j0); color: var(--j0); }
+.toast-bad::before { background: var(--j0); }
+.toast-info::before { background: var(--step-edge); }
 .toast a { flex: none; color: var(--ink); white-space: nowrap; }
 /* one slip at a time: older messages stay readable to assistive tech only */
 .toast:not(:last-child) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -700,7 +707,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .badge-txt b { font-size: max(12px, calc(var(--u) * 19)); font-weight: 800; }
 .badge-rank { margin-left: auto; padding-right: calc(var(--u) * 4); font-size: calc(var(--u) * 26); font-weight: 900; font-stretch: 125%; line-height: 1; }
 .seat.is-me .badge { outline: 3px solid var(--ink); outline-offset: -3px; }
-.seat.is-empty .badge { background: var(--step-2); color: var(--ink-muted); }
+.seat.is-empty .badge { background: var(--step-2); color: var(--ink-quiet); }
 .seat.is-empty .badge-n { background: var(--step-1); color: var(--ink-muted); }
 .pit-phone .badge, .pit-phone-reveal .badge { gap: calc(var(--u) * 6); padding: calc(var(--u) * 5); }
 .pit-phone .badge-n, .pit-phone-reveal .badge-n { width: calc(var(--u) * 42); height: calc(var(--u) * 42); font-size: calc(var(--u) * 29); }
@@ -746,6 +753,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   translate: -50% -50%;
   border-radius: var(--radius);
   background: var(--ink);
+  color: var(--paper);
   border: 3px solid var(--paper);
   box-shadow: var(--shadow-paper);
   @media (prefers-reduced-motion: no-preference) {
@@ -856,6 +864,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   gap: 10px;
   padding: 12px 16px 12px;
   border-top: 6px solid var(--j);
+  border-radius: 0 0 var(--radius) var(--radius);
   rotate: -0.6deg;
 }
 .ticket.is-loading { min-height: 9rem; align-content: center; }
@@ -944,7 +953,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   border: 2px solid var(--ink-muted);
   border-radius: var(--radius);
   background: var(--field);
-  box-shadow: inset 0 2px 0 rgb(22 24 26 / 0.1);
+  box-shadow: var(--shadow-field);
   font-family: var(--font-pencil);
   font-size: 1.35rem;
   font-weight: 700;
@@ -993,7 +1002,8 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .print-time { color: var(--ink-muted); font-size: var(--text-xs); }
 .print-mine .print-who { font-weight: 750; }
 .replay-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.replay-list { max-height: 24rem; }
+/* after the bell the sheet grows to hold every trade of the round, ending on a whole row */
+.replay-list { max-height: none; overflow: visible; }
 .replay-list li { grid-template-columns: 4.5rem minmax(0, 1fr); }
 .replay-list li.on { background: var(--step-1); font-weight: 750; }
 .replay-list li.past { opacity: 0.55; }
@@ -1060,7 +1070,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
     padding: 6px var(--gutter) calc(6px + env(safe-area-inset-bottom));
     background: var(--paper);
     border-top: 5px solid var(--j);
-    box-shadow: 0 -1px 0 var(--step-edge), 0 -8px 16px -10px rgb(22 24 26 / 0.4);
+    box-shadow: var(--shadow-cockpit);
     @media (prefers-reduced-motion: no-preference) {
       transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);
     }

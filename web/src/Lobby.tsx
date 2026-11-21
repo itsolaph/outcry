@@ -58,6 +58,8 @@ export function Lobby() {
           height={900}
           alt="Looking down from the gallery into a stepped octagonal trading pit, traders in red, green, gold and blue jackets with their hands up."
           decoding="async"
+          loading="eager"
+          {...{ fetchpriority: "high" }}
         />
         <div className="hero-copy">
           <h1 className="hero-head">Trade your hand before the bell rings.</h1>
