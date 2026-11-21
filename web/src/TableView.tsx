@@ -234,7 +234,7 @@ export function TableView({ address }: { address: string }) {
             </p>
           ) : null}
           {t.phase === "lobby" ? <p className="status-note">No round has been dealt here yet. Take a seat to deal the first one.</p> : null}
-          {t.phase === "settled" ? <TapeReplay prints={roundTape(t)} /> : null}
+          {t.phase === "settled" ? <TapeReplay prints={roundTape(t)} endTs={t.tradeEndTs} /> : null}
         </div>
       </div>
 
@@ -499,8 +499,10 @@ function Book({ t, mySeat, mine, busy, run, tablePk }: { t: TableState; mySeat: 
   const seated = mySeat >= 0 && !!mine;
   return (
     <section className={`sheet book ${mySeat >= 0 ? JACKETS[mySeat].cls : ""}`} aria-label="Order book" data-testid="book">
-      <h2 className="sheet-title">Book</h2>
-      <p className="sheet-sub">{seated ? "Take the best price, or write your own." : "Best prices from the other seats. Take a seat to trade."}</p>
+      <div className="sheet-head">
+        <h2 className="sheet-title">Book</h2>
+        <p className="sheet-sub">{seated ? "Take the best price, or write your own." : "Best prices from the other seats. Take a seat to trade."}</p>
+      </div>
       {[0, 1, 2, 3].map((s) => {
         const bid = bestBid(t, s, mySeat);
         const ask = bestAsk(t, s, mySeat);
@@ -513,26 +515,30 @@ function Book({ t, mySeat, mine, busy, run, tablePk }: { t: TableState; mySeat: 
             </div>
             <div className="book-take">
               <button
-                className="btn btn-line take"
+                className="take take-sell"
                 data-testid={`sell-${s}`}
                 disabled={!seated || !bid || busy}
                 title={bid ? `Sell one ${["spade", "club", "heart", "diamond"][s]} to ${JACKETS[bid.seat].name} at ${bid.price}` : "No bid"}
                 onClick={() => bid && run("Selling…", () => act.take(tablePk, mySeat, s, SIDE_BID, bid.seat, bid.price), `Sold 1 at ${bid.price}.`)}
               >
-                <span>Sell</span>
+                <span className="take-side">Sell</span>
                 <span className="take-px num">{bid ? <Tick v={bid.price} /> : "–"}</span>
-                {bid ? <span className={`take-who ${JACKETS[bid.seat].cls}`}>{bid.seat + 1}</span> : null}
+                <span className={`take-who ${bid ? JACKETS[bid.seat].cls : "is-none"}`} aria-hidden="true">
+                  {bid ? bid.seat + 1 : ""}
+                </span>
               </button>
               <button
-                className="btn btn-fill take"
+                className="take take-buy"
                 data-testid={`buy-${s}`}
                 disabled={!seated || !ask || busy}
                 title={ask ? `Buy one from ${JACKETS[ask.seat].name} at ${ask.price}` : "No offer"}
                 onClick={() => ask && run("Buying…", () => act.take(tablePk, mySeat, s, SIDE_ASK, ask.seat, ask.price), `Bought 1 at ${ask.price}.`)}
               >
-                <span>Buy</span>
+                <span className="take-side">Buy</span>
                 <span className="take-px num">{ask ? <Tick v={ask.price} /> : "–"}</span>
-                {ask ? <span className={`take-who ${JACKETS[ask.seat].cls}`}>{ask.seat + 1}</span> : null}
+                <span className={`take-who ${ask ? JACKETS[ask.seat].cls : "is-none"}`} aria-hidden="true">
+                  {ask ? ask.seat + 1 : ""}
+                </span>
               </button>
             </div>
             {seated ? <QuoteBox t={t} s={s} mySeat={mySeat} mine={mine!} want={want} busy={busy} run={run} tablePk={tablePk} /> : null}
@@ -560,11 +566,13 @@ function QuoteBox({ t, s, mySeat, mine, want, busy, run, tablePk }: { t: TableSt
       <label className="sr-only" htmlFor={`px-${s}`}>
         Price for {["spades", "clubs", "hearts", "diamonds"][s]}
       </label>
-      <input id={`px-${s}`} className="px" inputMode="numeric" value={px} data-testid={`px-${s}`} onChange={(e) => setPx(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))} />
-      <button className="btn btn-fill btn-small" data-testid={`bid-${s}`} disabled={busy || !valid || mine.chips < price} onClick={() => send(SIDE_BID)}>
+      <span className="pxbox">
+        <input id={`px-${s}`} className="px" inputMode="numeric" placeholder="1-99" autoComplete="off" value={px} data-testid={`px-${s}`} onChange={(e) => setPx(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))} />
+      </span>
+      <button className="qbtn" data-testid={`bid-${s}`} disabled={busy || !valid || mine.chips < price} onClick={() => send(SIDE_BID)}>
         Bid
       </button>
-      <button className="btn btn-line btn-small" data-testid={`offer-${s}`} disabled={busy || !valid || mine.hand[s] === 0} onClick={() => send(SIDE_ASK)}>
+      <button className="qbtn" data-testid={`offer-${s}`} disabled={busy || !valid || mine.hand[s] === 0} onClick={() => send(SIDE_ASK)}>
         Offer
       </button>
       {myBid || myAsk ? (
@@ -587,24 +595,39 @@ function QuoteBox({ t, s, mySeat, mine, want, busy, run, tablePk }: { t: TableSt
 
 // ------------------------------------------------------------------ tape (text twin of the arcs)
 
+/** One print on the ticker roll: bell-clock time, suit and price, seller square to buyer square. */
+function PrintRow({ p, endTs, className }: { p: TradePrint; endTs: number; className?: string }) {
+  const at = fmtClock(endTs - p.unixTs);
+  return (
+    <li className={className}>
+      <span className="print-time" aria-label={`${at} before the bell`}>
+        {at}
+      </span>
+      <span className="print-px">
+        <Suit s={p.suit} /> <span className="num">{p.price}</span>
+      </span>
+      <span className="print-who">
+        <SeatSquare seat={p.seller} />
+        <span className="print-to">sold to</span>
+        <SeatSquare seat={p.buyer} />
+      </span>
+    </li>
+  );
+}
+
 function Tape({ t, mySeat }: { t: TableState; mySeat: number }) {
   const all = roundTape(t);
   const prints = all.map((p, k) => ({ p, k })).reverse();
   return (
     <section className="sheet tape" aria-label="Trades this round" data-testid="tape">
-      <h2 className="sheet-title">Tape</h2>
+      <div className="sheet-head">
+        <h2 className="sheet-title">Tape</h2>
+        {prints.length ? <p className="sheet-sub">Clock at the print, price, seller to buyer.</p> : null}
+      </div>
       {prints.length === 0 ? <p className="empty">No trades yet. Quote a price or take one from the book.</p> : null}
       <ol className="prints">
         {prints.map(({ p, k }) => (
-          <li key={`${p.slot}-${k}`} className={p.buyer === mySeat || p.seller === mySeat ? "print-mine" : ""}>
-            <span className="print-px">
-              <Suit s={p.suit} /> <span className="num">{p.price}</span>
-            </span>
-            <span className="print-who">
-              {JACKETS[p.seller].name} sold to {JACKETS[p.buyer].name}
-            </span>
-            <span className="print-time num">{new Date(p.unixTs * 1000).toLocaleTimeString([], { minute: "2-digit", second: "2-digit" })}</span>
-          </li>
+          <PrintRow key={`${p.slot}-${k}`} p={p} endTs={t.tradeEndTs} className={p.buyer === mySeat || p.seller === mySeat ? "print-mine" : ""} />
         ))}
       </ol>
     </section>
@@ -613,7 +636,7 @@ function Tape({ t, mySeat }: { t: TableState; mySeat: number }) {
 
 // ------------------------------------------------------------------ after the bell
 
-function TapeReplay({ prints }: { prints: TradePrint[] }) {
+function TapeReplay({ prints, endTs }: { prints: TradePrint[]; endTs: number }) {
   const [step, setStep] = useState(-1);
   useEffect(() => {
     if (step < 0 || step >= prints.length) return;
@@ -621,13 +644,13 @@ function TapeReplay({ prints }: { prints: TradePrint[] }) {
     return () => clearTimeout(id);
   }, [step, prints.length]);
   return (
-    <section className="sheet replay" aria-label="Round tape">
-      <div className="replay-head">
+    <section className="sheet tape replay" aria-label="Round tape">
+      <div className="sheet-head replay-head">
         <h3 className="sheet-title">
           The tape, {prints.length} {prints.length === 1 ? "trade" : "trades"}
         </h3>
         {prints.length ? (
-          <button className="btn btn-line btn-small" onClick={() => setStep(0)}>
+          <button className="qbtn" onClick={() => setStep(0)}>
             {step >= 0 ? "Replaying…" : "Replay"}
           </button>
         ) : null}
@@ -635,14 +658,7 @@ function TapeReplay({ prints }: { prints: TradePrint[] }) {
       {prints.length === 0 ? <p className="empty">Nobody traded this round.</p> : null}
       <ol className="prints replay-list">
         {prints.map((p, k) => (
-          <li key={k} className={k === step ? "on" : k < step ? "past" : ""}>
-            <span className="print-px">
-              <Suit s={p.suit} /> <span className="num">{p.price}</span>
-            </span>
-            <span className="print-who">
-              {JACKETS[p.seller].name} sold to {JACKETS[p.buyer].name}
-            </span>
-          </li>
+          <PrintRow key={`${p.slot}-${k}`} p={p} endTs={endTs} className={k === step ? "on" : k < step ? "past" : ""} />
         ))}
       </ol>
     </section>
@@ -710,6 +726,7 @@ function PrivacyStory({ t, tablePk, probe, mySeat, walletAddr }: { t: TableState
         </ol>
 
         <div className="sheet receipts">
+          <span className="staple" aria-hidden="true" />
           <h4 className="receipts-title">Receipts for round {t.round}</h4>
           <ol className="receipt-rows">
             <li>

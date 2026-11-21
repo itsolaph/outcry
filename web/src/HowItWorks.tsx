@@ -124,46 +124,46 @@ function Diagram() {
 
         {seats.map(([x, y], i) => (
           <g key={i} className={`dg-seat dj${i}`}>
-            <rect x={x - 42} y={y - 24} width="84" height="48" rx="3" />
-            <rect className="dg-plate" x={x - 34} y={y - 17} width="68" height="34" rx="2" />
+            <rect x={x - 42} y={y - 24} width="84" height="48" rx="2" />
+            <rect className="dg-plate" x={x - 34} y={y - 17} width="68" height="34" />
             <text x={x} y={y - 1} className="dg-h">Seat {i + 1}</text>
             <text x={x} y={y + 13} className="dg-small">sealed</text>
           </g>
         ))}
 
         <g className="dg-slip">
-          <rect x={cx - 66} y={cy - 84} width="132" height="44" rx="3" />
+          <rect x={cx - 66} y={cy - 84} width="132" height="44" />
           <text x={cx} y={cy - 64} className="dg-h">VRF</text>
           <text x={cx} y={cy - 48} className="dg-small">deals into seats</text>
         </g>
         <g className="dg-table">
-          <rect x={cx - 84} y={cy - 26} width="168" height="52" rx="3" />
+          <rect x={cx - 84} y={cy - 26} width="168" height="52" />
           <text x={cx} y={cy - 4} className="dg-h">Table (public)</text>
           <text x={cx} y={cy + 13} className="dg-small">book, tape, scores, clock</text>
         </g>
         <g className="dg-slip">
-          <rect x={cx - 66} y={cy + 40} width="132" height="44" rx="3" />
+          <rect x={cx - 66} y={cy + 40} width="132" height="44" />
           <text x={cx} y={cy + 60} className="dg-h">Crank</text>
           <text x={cx} y={cy + 76} className="dg-small">bots + bell, 1 Hz</text>
         </g>
 
         {/* left: who sends transactions */}
         <g className="dg-card">
-          <rect x="16" y="96" width="176" height="116" rx="3" />
+          <rect x="16" y="96" width="176" height="116" />
           <text x="104" y="126" className="dg-h">Your browser</text>
           <text x="104" y="150">session key, 0 SOL</text>
           <text x="104" y="170">TEE token</text>
           <text x="104" y="190">reads only your seat</text>
         </g>
         <g className="dg-card">
-          <rect x="16" y="300" width="176" height="80" rx="3" />
+          <rect x="16" y="300" width="176" height="80" />
           <text x="104" y="332" className="dg-h">House dealer</text>
           <text x="104" y="356">starts rounds, 0 SOL</text>
         </g>
 
         {/* right: the base layer */}
         <g className="dg-base">
-          <rect x="704" y="96" width="160" height="300" rx="3" />
+          <rect x="704" y="96" width="160" height="300" />
           <text x="784" y="128" className="dg-h">Solana devnet</text>
           <text x="784" y="168">program</text>
           <text x="784" y="194">delegation</text>

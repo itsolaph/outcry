@@ -299,7 +299,7 @@ export function Pit({ t, now, mySeat, me, reveal = null, front }: PitProps) {
             {arcs.map((a) =>
               a.slip ? (
                 <g key={a.key} className={`arc-slip ${a.age === 0 ? "arc-new" : "arc-old"}`} transform={`translate(${a.slip.x.toFixed(1)} ${a.slip.y.toFixed(1)}) rotate(${a.slip.tilt})`}>
-                  <rect x={-slipW(L) / 2} y={-slipH(L) / 2} width={slipW(L)} height={slipH(L)} rx={3} />
+                  <rect x={-slipW(L) / 2} y={-slipH(L) / 2} width={slipW(L)} height={slipH(L)} />
                   <text y={L.slipFont * 0.36} fontSize={L.slipFont}>
                     {a.slip.text}
                   </text>

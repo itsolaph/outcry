@@ -39,10 +39,16 @@
   --font-board: "Doto Variable", "Doto", monospace;
   --font-pencil: "Kalam", cursive;
 
-  --radius: 3px;
-  --shadow-paper: 0 1px 0 #8e9384, 0 6px 14px -8px rgb(22 24 26 / 0.35);
-  --shadow-field: inset 0 2px 0 rgb(22 24 26 / 0.1);
-  --shadow-cockpit: 0 -1px 0 var(--step-edge), 0 -8px 16px -10px rgb(22 24 26 / 0.4);
+  /* paper is cut square; only the jacket badges keep their stamped rectangle */
+  --radius: 0;
+  --radius-badge: 2px;
+  /* one crisp paper-on-lino offset, no blur: the same token on every slip, sheet, tab and card */
+  --paper-drop: rgb(22 24 26 / 0.3);
+  --shadow-paper: 3px 3px 0 var(--paper-drop);
+  /* edges cut into paper: inline SVG masks (no gradients) */
+  --edge-perf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='6'%3E%3Cpath d='M0 0H4A3 3 0 0 0 10 0H14V6H0Z'/%3E%3C/svg%3E");
+  --edge-torn-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6'%3E%3Cpath d='M0 6L6 0L12 6Z'/%3E%3C/svg%3E");
+  --edge-torn-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6'%3E%3Cpath d='M0 0L6 6L12 0Z'/%3E%3C/svg%3E");
   --focus: var(--ink);
 
   --text-xs: 0.75rem;
@@ -187,12 +193,29 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   font-variant-numeric: tabular-nums;
 }
 
-/* paper: the only raised level */
-.slip, .sheet, .ticket, .hero-card, .wallet-pop, .toast {
+/* paper: the only raised level, cut square, one crisp offset */
+.slip, .sheet, .ticket, .hero-card, .wallet-pop, .toast, .status-note, .busy {
   background: var(--paper);
-  border-radius: var(--radius);
+  border-radius: 0;
   box-shadow: var(--shadow-paper);
 }
+/* a torn or perforated edge is a thin strip of the same paper outside the box, cut by an SVG mask */
+.book::before, .tape::before, .receipts::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--paper);
+  pointer-events: none;
+}
+.book::before, .tape::before { bottom: 100%; }
+.receipts::after { top: 100%; }
+/* the book is torn off a pad of quote slips along its perforation */
+.book::before { -webkit-mask: var(--edge-perf) repeat-x left bottom / 14px 6px; mask: var(--edge-perf) repeat-x left bottom / 14px 6px; }
+/* the tape is torn off the ticker roll; the receipt is torn off the register */
+.tape::before { -webkit-mask: var(--edge-torn-up) repeat-x left bottom / 12px 6px; mask: var(--edge-torn-up) repeat-x left bottom / 12px 6px; }
+.receipts::after { -webkit-mask: var(--edge-torn-down) repeat-x left top / 12px 6px; mask: var(--edge-torn-down) repeat-x left top / 12px 6px; }
 
 /* jacket photo with the seat number on the blank clip badge */
 .portrait {
@@ -283,14 +306,17 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 
 /* ------------------------------------------------------------------ toasts */
 .toasts { flex: 1; min-width: 0; display: flex; justify-content: center; }
+/* a small paper tab pinned to the bar with a strip of masking tape */
 .toast {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: 2px 10px;
   min-width: 0;
   max-width: 44rem;
-  padding: 6px 12px 6px 10px;
-  border: 1px solid var(--step-edge);
+  padding: 7px 14px 6px 14px;
+  border-left: 4px solid var(--ink);
+  rotate: -0.5deg;
   font-size: var(--text-sm);
   font-weight: 550;
   line-height: 1.3;
@@ -303,11 +329,22 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   }
 }
 .toast-text { min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-/* a small square marker leads each message: ink, or red beside the red words of a rejection */
-.toast::before { content: ""; flex: none; align-self: center; width: 8px; height: 8px; background: var(--ink); }
-.toast-bad { border-color: var(--j0); color: var(--j0); }
-.toast-bad::before { background: var(--j0); }
-.toast-info::before { background: var(--step-edge); }
+/* the tape: translucent lino-grey across the tab's top edge */
+.toast::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 18px;
+  width: 38px;
+  height: 12px;
+  background: color-mix(in oklab, var(--step-2) 70%, transparent);
+  border-inline: 1px dashed color-mix(in oklab, var(--step-riser) 60%, transparent);
+  rotate: -4deg;
+  pointer-events: none;
+}
+/* the tab's left edge says what kind of message it is: ink for done, grey for news, red with the red words of a rejection */
+.toast-bad { border-left-color: var(--j0); color: var(--j0); }
+.toast-info { border-left-color: var(--step-edge); }
 .toast a { flex: none; color: var(--ink); white-space: nowrap; }
 /* one slip at a time: older messages stay readable to assistive tech only */
 .toast:not(:last-child) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -471,7 +508,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 }
 
 /* ------------------------------------------------------------------ table page */
-.table-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; padding-block: 18px 16px; }
+.table-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; padding-block: 12px 10px; }
 .back { font-weight: 650; }
 .table-head h1 { font-variant-numeric: tabular-nums; font-size: clamp(2rem, 3.6vw, 3.1rem); font-weight: 900; font-stretch: 125%; line-height: 0.9; }
 .table-head .round { font-size: 0.42em; font-weight: 600; font-stretch: 100%; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
@@ -485,7 +522,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   list-style: none;
   margin: 0 auto;
   max-width: var(--container);
-  padding: 12px var(--gutter);
+  padding: 8px var(--gutter);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -509,13 +546,15 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .sq {
   display: inline-grid;
   place-items: center;
-  min-width: 1.375rem;
-  height: 1.375rem;
+  min-width: 1.5rem;
+  height: 1.5rem;
   padding: 0 3px;
-  border-radius: 2px;
+  border-radius: var(--radius-badge);
   background: var(--j);
   color: var(--j-on);
-  font-size: 0.8125rem;
+  /* a 1px ink edge, so the jacket square reads on the dark board and on paper alike */
+  box-shadow: 0 0 0 1px var(--ink);
+  font-size: 0.875rem;
   font-weight: 850;
   font-stretch: 125%;
   line-height: 1;
@@ -571,19 +610,23 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 }
 .floor-top { grid-area: top; }
 .floor-pit { grid-area: pit; min-width: 0; width: 100%; max-width: 60rem; justify-self: center; }
-.floor-rail { grid-area: rail; min-width: 0; display: grid; gap: 16px; }
+.floor-rail { grid-area: rail; min-width: 0; display: grid; align-content: start; gap: 22px; }
 @media (min-width: 72rem) {
   .floor {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 25rem);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
     grid-template-areas: "pit top" "pit rail";
     grid-template-rows: auto 1fr;
     column-gap: 32px;
     row-gap: 0;
+    padding-top: 16px;
   }
   .floor-top { margin-bottom: 16px; }
-  .floor-pit { max-width: none; }
+  /* the pit stays the biggest thing on the floor, but is sized to the window's height so
+     your card under it and the book beside it are all in the first view */
+  .floor-pit { max-width: min(100%, max(40rem, calc((100svh - 430px) * 1.66))); justify-self: start; }
+  main[data-phase="settled"] .floor-pit { max-width: none; }
 }
-.status-note { padding: 14px 16px; background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow-paper); }
+.status-note { padding: 14px 16px; }
 .status-note.is-bad { color: var(--j0); font-weight: 600; }
 
 /* ------------------------------------------------------------------ THE PIT */
@@ -684,7 +727,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   align-items: center;
   gap: calc(var(--u) * 8);
   padding: calc(var(--u) * 6);
-  border-radius: var(--radius);
+  border-radius: var(--radius-badge);
   background: var(--j);
   color: var(--j-on);
   overflow: hidden;
@@ -851,9 +894,6 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .busy {
   justify-self: start;
   padding: 4px 10px;
-  background: var(--paper);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-paper);
   font-family: var(--font-pencil);
   font-size: 1rem;
 }
@@ -861,10 +901,9 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 /* your trading card */
 .ticket {
   display: grid;
-  gap: 10px;
-  padding: 12px 16px 12px;
+  gap: 8px;
+  padding: 10px 16px 10px;
   border-top: 6px solid var(--j);
-  border-radius: 0 0 var(--radius) var(--radius);
   rotate: -0.6deg;
 }
 .ticket.is-loading { min-height: 9rem; align-content: center; }
@@ -873,7 +912,6 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .stamp {
   padding: 1px 7px;
   border: 2px solid var(--ink-muted);
-  border-radius: var(--radius);
   color: var(--ink-muted);
   font-size: var(--text-xs);
   font-weight: 700;
@@ -895,73 +933,183 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 .ticket-foot b { font-size: 1.3rem; font-weight: 800; }
 .ticket-help { font-size: var(--text-xs); color: var(--ink-muted); }
 
-/* the book: one ruled sheet */
-.sheet { padding: 16px 18px; }
-.sheet-title { font-size: 1.6rem; font-weight: 900; font-stretch: 125%; line-height: 0.9; }
-.sheet-sub { margin-top: 6px; font-size: var(--text-sm); color: var(--ink-muted); }
+/* ------------------------------------------------------------------ paper panels: one family, three roles
+   book = a pad of quote slips (perforated top), tape = a ticker roll (torn top, narrow),
+   receipts = a register receipt (stapled, torn bottom). All square, ruled with real borders. */
+.sheet { position: relative; padding: 14px 18px 14px; }
+.sheet-head { padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+.sheet-title { font-size: 1.5rem; font-weight: 900; font-stretch: 125%; line-height: 0.9; }
+.sheet-sub { margin-top: 5px; font-size: var(--text-sm); color: var(--ink-muted); line-height: 1.3; }
 .sheet-foot { margin-top: 10px; font-size: var(--text-sm); color: var(--ink-muted); }
-/* one ruled line per suit: suit and takes on the first line, your note and your quote under them */
+
+/* the book: one quote slip per suit, a suit header line, the two takes, then your pencilled quote */
 .book-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 6.25rem) minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: "suit sell buy" "need quote quote";
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "suit need" "sell buy" "quote quote";
   align-items: center;
-  gap: 6px 8px;
-  padding-block: 10px;
-  border-top: 2px solid var(--step-1);
+  gap: 7px 10px;
+  padding-block: 9px 10px;
+  border-bottom: 1px solid var(--step-2);
 }
-.book-row:first-of-type { margin-top: 10px; }
+.book-row:last-of-type { border-bottom: 0; padding-bottom: 2px; }
+/* a suit you still need: a jacket-colour tick in the slip's margin */
 .row-want::before {
   content: "";
   position: absolute;
   left: -18px;
-  top: 10px;
+  top: 9px;
   bottom: 10px;
   width: 6px;
   background: var(--j, var(--ink));
 }
 .book-suit, .book-take { display: contents; }
-.book-suit .suit { grid-area: suit; font-weight: 700; }
-.book-suit .glyph { font-size: 1.35rem; }
-.book-need { grid-area: need; align-self: start; padding-top: 10px; font-family: var(--font-pencil); font-size: 1.05rem; line-height: 1.1; color: var(--ink-muted); }
+.book-suit .suit { grid-area: suit; display: inline-flex; align-items: baseline; gap: 2px; font-size: 1.0625rem; font-weight: 800; font-stretch: 125%; line-height: 1; }
+.book-suit .glyph { font-size: 1.25rem; }
+.book-need { grid-area: need; justify-self: end; font-family: var(--font-pencil); font-size: 1.05rem; line-height: 1; color: var(--ink-muted); }
 .row-want .book-need { color: var(--ink); font-weight: 700; }
 .book-take > [data-testid^="sell-"] { grid-area: sell; }
 .book-take > [data-testid^="buy-"] { grid-area: buy; }
-.quotebox { grid-area: quote; }
-.take { justify-content: space-between; gap: 6px; padding: 0 8px 0 10px; }
-/* a take you cannot hit still reads as a price on the sheet */
-.take:disabled { opacity: 1; background: transparent; color: var(--ink-muted); border-color: var(--step-2); border-style: dashed; cursor: not-allowed; }
-.take-px { font-size: 1.15rem; font-weight: 800; }
+
+/* take buttons: stamped tickets. Notched at both ends, a perforation between the word and the
+   price stamp, the quoting seat's jacket square at the far end. Buy is inked, sell is outlined. */
+.take {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 8px;
+  min-height: 44px;
+  padding: 0 13px 0 14px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  @media (prefers-reduced-motion: no-preference) {
+    transition: transform 120ms var(--ease-out);
+  }
+}
+.take-buy { background: var(--ink); color: var(--paper); }
+.take::before, .take::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+}
+.take::before { left: -8px; }
+.take::after { right: -8px; }
+.take-side { font-stretch: 112%; }
+.take-px {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  border-left: 2px dashed color-mix(in oklab, currentColor 45%, transparent);
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-stretch: 112%;
+  font-variant-numeric: tabular-nums;
+}
 .take-who {
   display: grid;
   place-items: center;
-  min-width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 2px;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-badge);
   background: var(--j);
   color: var(--j-on);
-  font-size: var(--text-xs);
+  box-shadow: 0 0 0 1px var(--ink);
+  font-size: 0.875rem;
   font-weight: 850;
+  font-stretch: 125%;
 }
-.quotebox { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-/* the price you write: a real field box, pencil inside */
+.take-buy .take-who { box-shadow: 0 0 0 1px var(--paper); }
+.take-who.is-none { background: none; box-shadow: none; }
+.take-sell:hover:not(:disabled) { background: var(--step-1); }
+.take-buy:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 84%, var(--paper)); }
+.take:hover:not(:disabled) {
+  @media (prefers-reduced-motion: no-preference) {
+    transform: translateY(-1px);
+  }
+}
+.take:active:not(:disabled) {
+  @media (prefers-reduced-motion: no-preference) {
+    transform: scale(0.97);
+  }
+}
+/* a take you cannot hit still reads as an empty ticket on the slip */
+.take:disabled { background: transparent; color: var(--ink-muted); border: 2px dashed var(--step-edge); cursor: not-allowed; }
+.take:disabled::before, .take:disabled::after { border-color: var(--step-edge); }
+
+/* your quote: a pencil box drawn on the slip, then two small write-up buttons */
+.quotebox { grid-area: quote; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.pxbox { position: relative; display: inline-block; padding-inline: 2px; }
+.pxbox::before, .pxbox::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 10px;
+  background: var(--ink-muted);
+}
+.pxbox::before { left: 0; }
+.pxbox::after { right: 0; }
+.pxbox:hover::before, .pxbox:hover::after, .pxbox:focus-within::before, .pxbox:focus-within::after { background: var(--ink); }
 .px {
+  display: block;
   width: 4.25rem;
-  height: 40px;
-  padding: 0 6px;
-  border: 2px solid var(--ink-muted);
-  border-radius: var(--radius);
-  background: var(--field);
-  box-shadow: var(--shadow-field);
+  height: 36px;
+  padding: 4px 4px 0;
+  border: 0;
+  border-bottom: 2px solid var(--ink-muted);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  caret-color: var(--ink);
   font-family: var(--font-pencil);
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 700;
   line-height: 1;
   text-align: center;
 }
-.px:hover { border-color: var(--ink); }
-.px:focus-visible { outline-offset: 1px; border-color: var(--ink); }
+.px::placeholder { color: var(--ink-muted); font-size: 1rem; font-weight: 400; opacity: 0.7; }
+.pxbox:hover .px, .px:focus { border-bottom-color: var(--ink); }
+.px:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.qbtn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1.5px solid var(--ink-muted);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  @media (prefers-reduced-motion: no-preference) {
+    transition: transform 120ms var(--ease-out);
+  }
+}
+.qbtn:hover:not(:disabled) { border-color: var(--ink); background: var(--step-1); }
+.qbtn:active:not(:disabled) {
+  @media (prefers-reduced-motion: no-preference) {
+    transform: scale(0.97);
+  }
+}
+.qbtn:disabled { opacity: 0.45; cursor: not-allowed; }
 .myquotes { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   min-height: 32px;
@@ -983,29 +1131,33 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   }
 }
 @media (max-width: 40rem) {
-  .chip, .px { min-height: 44px; }
+  .chip, .px, .qbtn { min-height: 44px; }
 }
 
-/* tape: the text twin of the arcs */
+/* tape: the ticker roll, text twin of the arcs. Narrow, torn off the top, prints split by perforations */
+.tape { justify-self: start; width: 100%; max-width: 21rem; }
 .empty { margin-top: 10px; color: var(--ink-muted); font-size: var(--text-sm); }
-.prints { list-style: none; margin: 10px 0 0; padding: 0; max-height: 19rem; overflow-y: auto; }
+.prints { list-style: none; margin: 2px 0 0; padding: 0; max-height: 19rem; overflow-y: auto; }
 .prints li {
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: baseline;
-  padding-block: 6px;
-  border-top: 2px solid var(--step-1);
+  grid-template-columns: 3.4rem minmax(0, 3.6rem) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 7px 4px;
+  border-top: 2px dashed var(--step-2);
   font-size: var(--text-sm);
 }
-.print-px { font-family: var(--font-pencil); font-weight: 700; font-size: 1.1rem; }
-.print-time { color: var(--ink-muted); font-size: var(--text-xs); }
-.print-mine .print-who { font-weight: 750; }
+.prints li:first-child { border-top: 0; }
+.print-time { font-family: var(--font-board); font-size: 1.2rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.print-px { font-size: 1.1rem; font-weight: 800; font-stretch: 112%; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.print-who { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.print-to { font-size: var(--text-xs); color: var(--ink-muted); white-space: nowrap; }
+.print-mine { background: var(--step-1); }
+.print-mine .print-to { color: var(--ink); font-weight: 700; }
 .replay-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-/* after the bell the sheet grows to hold every trade of the round, ending on a whole row */
+/* after the bell the roll unwinds to hold every trade of the round */
 .replay-list { max-height: none; overflow: visible; }
-.replay-list li { grid-template-columns: 4.5rem minmax(0, 1fr); }
-.replay-list li.on { background: var(--step-1); font-weight: 750; }
+.replay-list li.on { background: var(--step-2); }
 .replay-list li.past { opacity: 0.55; }
 
 /* after the bell */
@@ -1021,8 +1173,43 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
 @media (min-width: 60rem) {
   .story-cols { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
 }
-.receipts-title { font-size: 1.25rem; font-weight: 850; font-stretch: 118%; line-height: 1; }
-.receipt-rows { list-style: none; counter-reset: rc; margin: 12px 0 0; padding: 0; }
+/* receipts: a register receipt, stapled at the corner and torn off along the bottom */
+.receipts { padding: 28px 20px 12px; margin-bottom: 6px; rotate: 0.4deg; }
+/* a wire staple through the top-left corner: the bar on top, its two legs bent under the paper */
+.staple {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  width: 40px;
+  height: 7px;
+  border: 2.5px solid var(--step-line);
+  border-bottom: 0;
+  rotate: -9deg;
+}
+.staple::before, .staple::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  width: 4px;
+  height: 4px;
+  background: var(--step-riser);
+}
+.staple::before { left: -3px; }
+.staple::after { right: -3px; }
+/* the punched filing hole at the other corner shows the lino through the paper */
+.receipts::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--lino);
+  box-shadow: inset 1px 1px 0 var(--step-edge);
+}
+.receipts-title { padding-bottom: 8px; border-bottom: 2px solid var(--ink); font-size: 1.25rem; font-weight: 850; font-stretch: 118%; line-height: 1; }
+.receipt-rows { list-style: none; counter-reset: rc; margin: 0; padding: 0; }
 .receipt-rows li {
   counter-increment: rc;
   display: grid;
@@ -1030,9 +1217,10 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
   gap: 2px 10px;
   align-items: baseline;
   padding-block: 9px;
-  border-top: 2px solid var(--step-1);
+  border-bottom: 1px solid var(--step-2);
   font-size: var(--text-sm);
 }
+.receipt-rows li:last-child { border-bottom: 2px solid var(--ink); }
 .receipt-rows li::before { content: counter(rc); font-size: 1.1rem; font-weight: 900; font-stretch: 125%; color: var(--ink-muted); }
 .rc-step { font-weight: 700; }
 .rc-links { display: flex; flex-wrap: wrap; gap: 4px 14px; font-weight: 600; }
@@ -1070,7 +1258,6 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.86em
     padding: 6px var(--gutter) calc(6px + env(safe-area-inset-bottom));
     background: var(--paper);
     border-top: 5px solid var(--j);
-    box-shadow: var(--shadow-cockpit);
     @media (prefers-reduced-motion: no-preference) {
       transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);
     }
