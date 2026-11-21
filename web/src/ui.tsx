@@ -1,20 +1,18 @@
 import { ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import { SUITS, TableState } from "@outcry/client";
 import { explorerAddress, explorerTx } from "./config";
-import jacketRed from "./assets/img/jacket-red.webp";
-import jacketGreen from "./assets/img/jacket-green.webp";
-import jacketGold from "./assets/img/jacket-gold.webp";
-import jacketBlue from "./assets/img/jacket-blue.webp";
 
 export const SUIT_GLYPH = ["♠", "♣", "♥", "♦"];
 export const SUIT_NAME = SUITS;
-/** Trading jackets: each seat wears one colour everywhere in the UI. */
-export const JACKETS = [
-  { name: "Red", cls: "j0", img: jacketRed },
-  { name: "Green", cls: "j1", img: jacketGreen },
-  { name: "Gold", cls: "j2", img: jacketGold },
-  { name: "Blue", cls: "j3", img: jacketBlue },
-];
+
+export type SeatKind = "you" | "player" | "bot";
+export const KIND_LABEL: Record<SeatKind, string> = { you: "you", player: "player", bot: "house bot" };
+
+/** Who sits in seat `i`, from the viewer's side: you, another player, or a house bot. */
+export function seatKind(t: TableState, i: number, me: string): SeatKind {
+  const s = t.seats[i];
+  return s.kind === "human" ? (s.owner.toBase58() === me ? "you" : "player") : "bot";
+}
 
 export function Suit({ s, withName = false }: { s: number; withName?: boolean }) {
   return (
@@ -27,33 +25,14 @@ export function Suit({ s, withName = false }: { s: number; withName?: boolean })
   );
 }
 
-/** A seat's jacket as a small flat tag: colour block with the seat number, then the name. */
-export function Jacket({ seat, label }: { seat: number; label?: ReactNode }) {
+/** A seat is its number in a small circle: filled for you, ink ring for a player, quiet ring for a house bot. */
+export function Seat({ seat, kind = "bot" }: { seat: number; kind?: SeatKind }) {
   return (
-    <span className={`jacket ${JACKETS[seat].cls}`}>
-      <span className="jacket-n" aria-hidden="true">
-        {seat + 1}
-      </span>
-      {label ?? JACKETS[seat].name}
-    </span>
-  );
-}
-
-/** A seat as a small jacket-colour square with its number; the name is for screen readers. */
-export function SeatSquare({ seat }: { seat: number }) {
-  return (
-    <span className={`sq ${JACKETS[seat].cls}`} title={JACKETS[seat].name}>
+    <span className={`seat is-${kind}`} title={`Seat ${seat + 1}, ${KIND_LABEL[kind]}`}>
       <span aria-hidden="true">{seat + 1}</span>
-      <span className="sr-only">{JACKETS[seat].name}</span>
-    </span>
-  );
-}
-
-/** The jacket photo on its hook, with the seat number set on the blank clip badge. */
-export function JacketPortrait({ seat, className = "" }: { seat: number; className?: string }) {
-  return (
-    <span className={`portrait ${JACKETS[seat].cls} ${className}`} data-n={seat + 1}>
-      <img src={JACKETS[seat].img} alt="" width={480} height={480} loading="lazy" decoding="async" />
+      <span className="sr-only">
+        seat {seat + 1} ({KIND_LABEL[kind]})
+      </span>
     </span>
   );
 }
@@ -65,6 +44,27 @@ export function Tick({ v, className = "" }: { v: ReactNode; className?: string }
       {v}
     </span>
   );
+}
+
+/** A clock set digit by digit, so only the digits that change roll. */
+export function Roll({ text }: { text: string }) {
+  return (
+    <>
+      {[...text].map((ch, i) => (
+        <span key={`${i}-${ch}`} className={/[0-9]/.test(ch) ? "digit" : "sep"}>
+          {ch}
+        </span>
+      ))}
+    </>
+  );
+}
+
+/** One seat's quote in one suit: "14 at 22", "9 bid", "at 30". */
+export function quoteText(bid: number, ask: number): string | null {
+  if (bid && ask) return `${bid} at ${ask}`;
+  if (bid) return `${bid} bid`;
+  if (ask) return `at ${ask}`;
+  return null;
 }
 
 export function ordinal(n: number): string {
@@ -103,18 +103,6 @@ export function phaseText(t: TableState, now: number): string {
     case "settled":
       return `Bell rang ${fmtClock(now - t.tradeEndTs)} ago`;
   }
-}
-
-/** Matches a media query (layout-only: picks the pit's drawing shape). */
-export function useMedia(query: string): boolean {
-  return useSyncExternalStore(
-    (l) => {
-      const m = window.matchMedia(query);
-      m.addEventListener("change", l);
-      return () => m.removeEventListener("change", l);
-    },
-    () => window.matchMedia(query).matches,
-  );
 }
 
 // ------------------------------------------------------------------ toasts

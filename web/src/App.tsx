@@ -24,23 +24,6 @@ export function App() {
           <a href="#/how">How it works</a>
         </div>
       </footer>
-      {/* print treatment for the photographs: pulls them toward the lino and ink of the drawn pit */}
-      <svg className="sr-only" aria-hidden="true" focusable="false" width="0" height="0">
-        <filter id="print" colorInterpolationFilters="sRGB">
-          <feColorMatrix
-            type="matrix"
-            values="0.78 0.14 0.03 0 0.035
-                    0.09 0.80 0.06 0 0.035
-                    0.08 0.14 0.66 0 0.03
-                    0    0    0    1 0"
-          />
-          <feComponentTransfer>
-            <feFuncR type="linear" slope="1.06" intercept="-0.03" />
-            <feFuncG type="linear" slope="1.06" intercept="-0.03" />
-            <feFuncB type="linear" slope="1.06" intercept="-0.03" />
-          </feComponentTransfer>
-        </filter>
-      </svg>
     </>
   );
 }
@@ -55,16 +38,11 @@ function TopBar({ route }: { route: string }) {
         <a className="nav" href="#/" aria-current={route === "/" ? "page" : undefined}>
           Lobby
         </a>
-        <a className="nav" href="#/how" aria-current={route === "/how" ? "page" : undefined}>
+        <a className="nav nav-how" href="#/how" aria-current={route === "/how" ? "page" : undefined}>
           How it works
         </a>
-        {/* the status slip: a reserved slot in the header, so a message never covers the page */}
-        <div className="statusrow">
-          <Toasts />
-          <span className="guest" title="Your in-browser session key (holds 0 SOL)">
-            Guest key <AddrLink addr={sessionKey().publicKey.toBase58()} layer="er" />
-          </span>
-        </div>
+        {/* the status line: messages take the bar's own free space, so they never sit on the page's controls */}
+        <Toasts />
         <WalletMenu />
       </nav>
     </header>
@@ -97,7 +75,7 @@ function WalletMenu() {
 
   return (
     <div className="wallet">
-      <button className="btn btn-line btn-small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+      <button className="btn btn-line" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         {addr ? (
           `${addr.slice(0, 4)}…${addr.slice(-4)}`
         ) : (
@@ -114,7 +92,7 @@ function WalletMenu() {
                 A wallet is optional. Connect one (set to devnet) to bind your seat to an on-chain player record. You play the
                 same without it.
               </p>
-              {w.available.length === 0 ? <p className="muted">No Solana wallet found in this browser.</p> : null}
+              {w.available.length === 0 ? <p className="quiet">No Solana wallet found in this browser.</p> : null}
               {w.available.map((x) => (
                 <button
                   key={x.name}
@@ -134,7 +112,7 @@ function WalletMenu() {
               <p>
                 <AddrLink addr={addr} layer="base">{`${addr.slice(0, 6)}…${addr.slice(-6)}`}</AddrLink> on devnet.
               </p>
-              {record === undefined ? <p className="muted">Reading your player record…</p> : null}
+              {record === undefined ? <p className="quiet">Reading your player record…</p> : null}
               {record ? (
                 <dl className="record">
                   <dt>Rounds</dt>
@@ -151,7 +129,7 @@ function WalletMenu() {
                 <>
                   <p>No player record yet. Creating one costs about 0.0012 SOL of devnet rent, paid once by your wallet.</p>
                   <button
-                    className="btn btn-fill btn-small"
+                    className="btn btn-fill"
                     disabled={busy}
                     onClick={async () => {
                       setBusy(true);
@@ -172,6 +150,9 @@ function WalletMenu() {
               </button>
             </>
           )}
+          <p className="guest" title="Your in-browser session key (holds 0 SOL)">
+            Guest key <AddrLink addr={sessionKey().publicKey.toBase58()} layer="er" />, kept in this browser. It signs your moves and holds 0 SOL.
+          </p>
         </div>
       ) : null}
     </div>
