@@ -9,6 +9,9 @@ Ephemeral Rollup** (TEE) that only their owner can read, the deal comes from **V
 the bell run on an on-chain **crank**, and results are written back to Solana by a **Magic Action**.
 A guest plays from the browser with a throwaway key holding 0 SOL: no wallet, no fees, no server.
 
+- **Play it:** https://outcry-27j.pages.dev/ (devnet; four house pits deal round after round)
+- **Demo video (74 s):** https://youtube.com/shorts/lQMaJlRfdeI
+
 ## How to play (guest flow)
 
 1. Open the web app and press **Play now**. Your browser creates a session keypair (kept in
