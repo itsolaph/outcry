@@ -1,0 +1,28 @@
+{
+  "name": "outcry",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "web"
+  ],
+  "scripts": {
+    "spike": "tsx spike/scripts/spike.ts",
+    "devnet-round": "tsx scripts/devnet-round.ts",
+    "dealer": "tsx scripts/house-dealer.ts",
+    "table-status": "tsx scripts/table-status.ts",
+    "e2e-web": "tsx scripts/e2e-web.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.32.1",
+    "@magicblock-labs/ephemeral-rollups-sdk": "0.18.0",
+    "@solana/web3.js": "^1.98.4",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "playwright-core": "^1.49.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

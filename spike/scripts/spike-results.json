@@ -1,0 +1,81 @@
+{
+  "baseInitDelegate": "5JRqkd6BM5ESbMGn26Y1NxwR5AitjuLHAEv8WybfygZrFpxiwdzqDn6vNefANjqBkT7WSQ87nxNxTYYu8SC1FDsq",
+  "Q4_createPermissionA": {
+    "signer": "0-SOL key",
+    "sig": "3eG6jrfqjGCn6foPfeL51xABU2GtLVFPXR87tm4iq7MZWXEX3LmjCKRmQEm8EogX5jYuWS53qXZxWCxDcaSntTdK"
+  },
+  "q1": {
+    "A_byMember": true,
+    "A_byOutsider": {
+      "visible": false,
+      "why": "null"
+    },
+    "A_noToken": {
+      "visible": false,
+      "why": "null"
+    },
+    "A_byDeployer": false,
+    "D_byMemberFlags0": true
+  },
+  "nonMemberWrite": {
+    "ok": true,
+    "sig": "zcCgGeakXD8zCtGqBEpDHWQAaVxBcG3veXZNvBtxGXLMUS9DAgdeTTK2Jdg8aKQzNGfcHxhKmVd4jfVtRDUXsot",
+    "pokesSeenByMember": "1"
+  },
+  "pairTxVisibility": {
+    "sig": "3m6vGrbnP5LTQxe3P6GquwL7q9BSZLmK4SJeXmL4jMpPtg3sudF1i9gHxQoVBfsP9S3xwXwN97LQhmH3RgrC33k",
+    "member_of_A": "visible(keys=0,logs=0)",
+    "member_of_B": "visible(keys=0,logs=0)",
+    "noToken": "visible(keys=0,logs=0)",
+    "sender": "visible(keys=0,logs=0)"
+  },
+  "flags0TxVisibility": {
+    "sig": "2GVjWgKkWxNmhUj67MfpPuDEssocZ4jqcyvSSkdMj9znJv6LDZJq5WACqi1qXUC94EiTSXdMoStBjgZGBasVaJYr",
+    "memberFlags0": "visible(keys=0,logs=0)",
+    "outsider": "visible(keys=0,logs=0)"
+  },
+  "Q2_requestVrf": {
+    "signer": "0-SOL key",
+    "sig": "5pJnXXYiWtWJdsxWc4FgJUc3mZb1tkmk46WeJnyi2u3smNAs5E97Rpzd3kiJzKBkwBZYARnLSdZaYD8fsRxKjEhL"
+  },
+  "q2": {
+    "requestSig": "5pJnXXYiWtWJdsxWc4FgJUc3mZb1tkmk46WeJnyi2u3smNAs5E97Rpzd3kiJzKBkwBZYARnLSdZaYD8fsRxKjEhL",
+    "fulfilled": false,
+    "randomness": "",
+    "callbackSeenByMember": "n/a",
+    "callbackSeenByOutsider": "n/a"
+  },
+  "Q3_scheduleTicks": {
+    "signer": "0-SOL key",
+    "sig": "bji6Pc6Us8dV3P3SqAwgdXCNiGuzNWNLT99bqs2pwsuf2dkCE5UGeb9DtcveBuKSKnXA91KtPFdkTbfPDvuwrnY"
+  },
+  "Q3_scheduleReveal": {
+    "signer": "0-SOL key",
+    "sig": "5vCnDd3uxvNAT5RKwf7hKr551UrYJe5KcZjwR6VA2FQe7aghSzqCt46KLAv3dnwJN3doh9mG2F4hQ4AE2Dh7nzT"
+  },
+  "q3": {
+    "tickSamples": [
+      9,
+      11,
+      14,
+      16,
+      19,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "recentTickSigs": [],
+    "crankRevealMadeBVisibleToNonMember": true,
+    "bTicks": 6
+  },
+  "revealA": {
+    "sig": "1pGB6dkbjEfxp2EsXHCYBnHTSCKJNkE6FszC9pzGRh637wLX2fCF74A7gCkph4TKv7N5bmFdDhdzyNeeiBc7fok",
+    "outsiderVisibleAfter": true
+  }
+}

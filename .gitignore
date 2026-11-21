@@ -1,0 +1,9 @@
+target/
+node_modules/
+client/dist/
+web/dist/
+tests-magicsvm-rs/target/
+.anchor/
+.playwright-browsers/
+*.log
+.claude/

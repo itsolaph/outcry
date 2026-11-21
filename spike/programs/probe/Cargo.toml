@@ -1,0 +1,24 @@
+[package]
+name = "probe"
+version = "0.1.0"
+description = "Devnet TEE spike probe for Outcry"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "probe"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+custom-heap = []
+custom-panic = []
+anchor-debug = []
+
+[dependencies]
+anchor-lang = { version = "=1.1.2" }
+ephemeral-rollups-sdk = { version = "=0.18.0", features = ["anchor", "access-control", "vrf", "crank"] }

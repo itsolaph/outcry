@@ -1,0 +1,19 @@
+[toolchain]
+anchor_version = "1.1.2"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.devnet]
+outcry = "AUnuoAP1BoujRzy4SSPeiJLoiWKPPsHrAcFqcsiSyWVv"
+
+[programs.localnet]
+outcry = "AUnuoAP1BoujRzy4SSPeiJLoiWKPPsHrAcFqcsiSyWVv"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/outcry-devnet/deployer.json"
+
+[scripts]
+test = "cargo +stable test --manifest-path tests-magicsvm-rs/Cargo.toml"

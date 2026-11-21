@@ -1,0 +1,3282 @@
+{
+  "address": "AUnuoAP1BoujRzy4SSPeiJLoiWKPPsHrAcFqcsiSyWVv",
+  "metadata": {
+    "name": "outcry",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Outcry: private open-outcry card trading table on a MagicBlock TEE ephemeral rollup"
+  },
+  "instructions": [
+    {
+      "name": "bot_tick",
+      "docs": [
+        "ER: one bot step (permissionless, rate limited; normally driven by the crank). Rings",
+        "the bell when the window is over. Bots read only their own seat and the public book."
+      ],
+      "discriminator": [
+        89,
+        254,
+        164,
+        225,
+        221,
+        228,
+        231,
+        114
+      ],
+      "accounts": [
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat0",
+          "writable": true
+        },
+        {
+          "name": "seat1",
+          "writable": true
+        },
+        {
+          "name": "seat2",
+          "writable": true
+        },
+        {
+          "name": "seat3",
+          "writable": true
+        },
+        {
+          "name": "permission0",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat0"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission1",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat1"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission2",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat2"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission3",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat3"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission_program",
+          "address": "ACLseoPoyC3cBqoUtkbjZ4aDrkurZW86v19pXz2XQnp1"
+        },
+        {
+          "name": "ephemeral_vault",
+          "writable": true,
+          "address": "MagicVau1t999999999999999999999999999999999"
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel",
+      "docs": [
+        "ER: remove own quote."
+      ],
+      "discriminator": [
+        232,
+        219,
+        223,
+        41,
+        219,
+        236,
+        220,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat"
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_index",
+          "type": "u8"
+        },
+        {
+          "name": "suit",
+          "type": "u8"
+        },
+        {
+          "name": "side",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "create_table",
+      "docs": [
+        "Base: create a table and its four private seats. Seats are pre-funded so they can pay",
+        "their own ephemeral-permission rent on the ER."
+      ],
+      "discriminator": [
+        214,
+        142,
+        131,
+        250,
+        242,
+        83,
+        135,
+        185
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  98,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "table_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat0",
+          "writable": true
+        },
+        {
+          "name": "seat1",
+          "writable": true
+        },
+        {
+          "name": "seat2",
+          "writable": true
+        },
+        {
+          "name": "seat3",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "table_id",
+          "type": "u64"
+        },
+        {
+          "name": "window_secs",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "deal",
+      "docs": [
+        "ER, VRF callback: deal the round. Bound to the round it was requested for; a late or",
+        "duplicate callback is a no-op."
+      ],
+      "discriminator": [
+        128,
+        0,
+        138,
+        208,
+        72,
+        249,
+        203,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "vrf_program_identity",
+          "signer": true,
+          "address": "67CjM7ZLfCfBDHPY3GMB9nSYnhjdY5JuRpEY27dBsLrv"
+        },
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat0",
+          "writable": true
+        },
+        {
+          "name": "seat1",
+          "writable": true
+        },
+        {
+          "name": "seat2",
+          "writable": true
+        },
+        {
+          "name": "seat3",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "randomness",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "round",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "delegate_seat",
+      "docs": [
+        "Base: delegate one seat to the TEE validator."
+      ],
+      "discriminator": [
+        53,
+        85,
+        50,
+        81,
+        161,
+        68,
+        71,
+        212
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "table",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  98,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "table_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buffer_seat",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                215,
+                198,
+                108,
+                151,
+                201,
+                5,
+                4,
+                85,
+                42,
+                16,
+                185,
+                118,
+                129,
+                41,
+                159,
+                228,
+                141,
+                154,
+                178,
+                231,
+                209,
+                155,
+                121,
+                217,
+                8,
+                228,
+                108,
+                42,
+                253,
+                193,
+                145
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_seat",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_seat",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "seat",
+          "writable": true
+        },
+        {
+          "name": "validator",
+          "optional": true
+        },
+        {
+          "name": "owner_program",
+          "address": "AUnuoAP1BoujRzy4SSPeiJLoiWKPPsHrAcFqcsiSyWVv"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u8"
+        },
+        {
+          "name": "_table_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "delegate_table",
+      "docs": [
+        "Base: delegate the table to the TEE validator (once; the table is then reused)."
+      ],
+      "discriminator": [
+        161,
+        66,
+        67,
+        113,
+        58,
+        219,
+        238,
+        170
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "buffer_table",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "table"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                215,
+                198,
+                108,
+                151,
+                201,
+                5,
+                4,
+                85,
+                42,
+                16,
+                185,
+                118,
+                129,
+                41,
+                159,
+                228,
+                141,
+                154,
+                178,
+                231,
+                209,
+                155,
+                121,
+                217,
+                8,
+                228,
+                108,
+                42,
+                253,
+                193,
+                145
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_table",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "table"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_table",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "table"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "table",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  98,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "table_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "validator",
+          "optional": true
+        },
+        {
+          "name": "owner_program",
+          "address": "AUnuoAP1BoujRzy4SSPeiJLoiWKPPsHrAcFqcsiSyWVv"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "table_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "init_permissions",
+      "docs": [
+        "ER: create the four seat permissions (private, no members yet). Idempotent."
+      ],
+      "discriminator": [
+        247,
+        240,
+        133,
+        29,
+        26,
+        176,
+        185,
+        61
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "table"
+        },
+        {
+          "name": "seat0",
+          "writable": true
+        },
+        {
+          "name": "seat1",
+          "writable": true
+        },
+        {
+          "name": "seat2",
+          "writable": true
+        },
+        {
+          "name": "seat3",
+          "writable": true
+        },
+        {
+          "name": "permission0",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat0"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission1",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat1"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission2",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat2"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission3",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat3"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission_program",
+          "address": "ACLseoPoyC3cBqoUtkbjZ4aDrkurZW86v19pXz2XQnp1"
+        },
+        {
+          "name": "ephemeral_vault",
+          "writable": true,
+          "address": "MagicVau1t999999999999999999999999999999999"
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_record",
+      "docs": [
+        "Base: create the lifetime record of a wallet (anyone may pay for it)."
+      ],
+      "discriminator": [
+        222,
+        131,
+        107,
+        128,
+        18,
+        146,
+        125,
+        43
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "wallet"
+        },
+        {
+          "name": "record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  99,
+                  111,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "wallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "join",
+      "docs": [
+        "ER: take a bot seat. `wallet` (optional co-signer) binds the seat to a base-layer",
+        "`PlayerRecord`; without it the seat plays anonymously."
+      ],
+      "discriminator": [
+        206,
+        55,
+        2,
+        106,
+        113,
+        220,
+        17,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "wallet",
+          "docs": [
+            "Optional wallet co-signature binding the seat to that wallet's record."
+          ],
+          "signer": true,
+          "optional": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_index",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "leave",
+      "docs": [
+        "ER: give a seat back to the house bot (any time; a bot finishes the hand)."
+      ],
+      "discriminator": [
+        59,
+        234,
+        148,
+        108,
+        107,
+        149,
+        173,
+        112
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_index",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "process_undelegation",
+      "discriminator": [
+        196,
+        28,
+        41,
+        206,
+        48,
+        37,
+        51,
+        167
+      ],
+      "accounts": [
+        {
+          "name": "base_account",
+          "writable": true
+        },
+        {
+          "name": "buffer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101,
+                  45,
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "base_account"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                181,
+                183,
+                0,
+                225,
+                242,
+                87,
+                58,
+                192,
+                204,
+                6,
+                34,
+                1,
+                52,
+                74,
+                207,
+                151,
+                184,
+                53,
+                6,
+                235,
+                140,
+                229,
+                25,
+                152,
+                204,
+                98,
+                126,
+                24,
+                147,
+                128,
+                167,
+                62
+              ]
+            }
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "account_seeds",
+          "type": {
+            "vec": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "publish_records",
+      "docs": [
+        "ER: send this round's results to the base-layer player records through a standalone",
+        "Magic Action (no commit, so no commit nonce is consumed). Anyone may call it once per",
+        "round after the bell; the caller is the intent payer."
+      ],
+      "discriminator": [
+        105,
+        31,
+        158,
+        6,
+        206,
+        121,
+        16,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "program_id",
+          "address": "AUnuoAP1BoujRzy4SSPeiJLoiWKPPsHrAcFqcsiSyWVv"
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "quote",
+      "docs": [
+        "ER: post or replace own quote. `side` 0 = bid, 1 = ask."
+      ],
+      "discriminator": [
+        149,
+        42,
+        109,
+        247,
+        134,
+        146,
+        213,
+        123
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat"
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_index",
+          "type": "u8"
+        },
+        {
+          "name": "suit",
+          "type": "u8"
+        },
+        {
+          "name": "side",
+          "type": "u8"
+        },
+        {
+          "name": "price",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "record_round",
+      "docs": [
+        "Base, Magic Action only: apply one round's results to the players' records. The escrow",
+        "signer proves the delegation program dispatched it, and binding `escrow_auth` to the",
+        "table PDA proves this program scheduled it for that table. Idempotent per (table, round)."
+      ],
+      "discriminator": [
+        65,
+        203,
+        203,
+        176,
+        231,
+        96,
+        87,
+        123
+      ],
+      "accounts": [
+        {
+          "name": "record0",
+          "writable": true
+        },
+        {
+          "name": "record1",
+          "writable": true
+        },
+        {
+          "name": "record2",
+          "writable": true
+        },
+        {
+          "name": "record3",
+          "writable": true
+        },
+        {
+          "name": "source_program",
+          "address": "AUnuoAP1BoujRzy4SSPeiJLoiWKPPsHrAcFqcsiSyWVv"
+        },
+        {
+          "name": "escrow_auth",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  98,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "table_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "_creator",
+          "type": "pubkey"
+        },
+        {
+          "name": "_table_id",
+          "type": "u64"
+        },
+        {
+          "name": "round",
+          "type": "u32"
+        },
+        {
+          "name": "entries",
+          "type": {
+            "array": [
+              {
+                "defined": {
+                  "name": "RecordEntry"
+                }
+              },
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ring_bell",
+      "docs": [
+        "ER: ring the bell once the window has ended (anyone). Scores, ranks, then flips every",
+        "seat permission public for the reveal."
+      ],
+      "discriminator": [
+        21,
+        87,
+        18,
+        42,
+        178,
+        204,
+        151,
+        78
+      ],
+      "accounts": [
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat0",
+          "writable": true
+        },
+        {
+          "name": "seat1",
+          "writable": true
+        },
+        {
+          "name": "seat2",
+          "writable": true
+        },
+        {
+          "name": "seat3",
+          "writable": true
+        },
+        {
+          "name": "permission0",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat0"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission1",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat1"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission2",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat2"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission3",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat3"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission_program",
+          "address": "ACLseoPoyC3cBqoUtkbjZ4aDrkurZW86v19pXz2XQnp1"
+        },
+        {
+          "name": "ephemeral_vault",
+          "writable": true,
+          "address": "MagicVau1t999999999999999999999999999999999"
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "set_window",
+      "docs": [
+        "ER: change the trading window (creator only, between rounds)."
+      ],
+      "discriminator": [
+        225,
+        198,
+        141,
+        11,
+        166,
+        215,
+        219,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "window_secs",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "start_round",
+      "docs": [
+        "ER: start a round. Seals every seat (private permission, owner as the only member),",
+        "requests VRF from the ephemeral queue, and optionally schedules the bot/bell crank."
+      ],
+      "discriminator": [
+        144,
+        144,
+        43,
+        7,
+        193,
+        42,
+        217,
+        215
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat0",
+          "writable": true
+        },
+        {
+          "name": "seat1",
+          "writable": true
+        },
+        {
+          "name": "seat2",
+          "writable": true
+        },
+        {
+          "name": "seat3",
+          "writable": true
+        },
+        {
+          "name": "permission0",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat0"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission1",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat1"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission2",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat2"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission3",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat3"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission_program",
+          "address": "ACLseoPoyC3cBqoUtkbjZ4aDrkurZW86v19pXz2XQnp1"
+        },
+        {
+          "name": "ephemeral_vault",
+          "writable": true,
+          "address": "MagicVau1t999999999999999999999999999999999"
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "oracle_queue",
+          "writable": true
+        },
+        {
+          "name": "program_identity",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  100,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vrf_program",
+          "address": "Vrf1RNUjXmQGjmQrQLvJHs9SNkvDJEsRVFPkfSQUwGz"
+        },
+        {
+          "name": "slot_hashes",
+          "address": "SysvarS1otHashes111111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "use_crank",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "take",
+      "docs": [
+        "ER: trade one card against `counterparty`'s resting quote on `side` of `suit`, at its",
+        "price. Taking an ask buys; taking a bid sells."
+      ],
+      "discriminator": [
+        149,
+        226,
+        52,
+        104,
+        6,
+        142,
+        230,
+        39
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat",
+          "writable": true
+        },
+        {
+          "name": "counter_seat",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_index",
+          "type": "u8"
+        },
+        {
+          "name": "suit",
+          "type": "u8"
+        },
+        {
+          "name": "side",
+          "type": "u8"
+        },
+        {
+          "name": "counterparty",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "undelegate_table",
+      "docs": [
+        "ER: retire the table (creator only, between rounds). Closes the four seat permissions",
+        "(rent back to the seats), then commits and undelegates the table and seats to base."
+      ],
+      "discriminator": [
+        130,
+        193,
+        124,
+        218,
+        83,
+        75,
+        188,
+        233
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "table",
+          "writable": true
+        },
+        {
+          "name": "seat0",
+          "writable": true
+        },
+        {
+          "name": "seat1",
+          "writable": true
+        },
+        {
+          "name": "seat2",
+          "writable": true
+        },
+        {
+          "name": "seat3",
+          "writable": true
+        },
+        {
+          "name": "permission0",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat0"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission1",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat1"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission2",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat2"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission3",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  101,
+                  114,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  58
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seat3"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                136,
+                161,
+                10,
+                196,
+                33,
+                152,
+                1,
+                214,
+                246,
+                106,
+                29,
+                60,
+                6,
+                152,
+                192,
+                102,
+                169,
+                175,
+                212,
+                217,
+                180,
+                252,
+                231,
+                71,
+                151,
+                141,
+                209,
+                5,
+                168,
+                212,
+                103,
+                82
+              ]
+            }
+          }
+        },
+        {
+          "name": "permission_program",
+          "address": "ACLseoPoyC3cBqoUtkbjZ4aDrkurZW86v19pXz2XQnp1"
+        },
+        {
+          "name": "ephemeral_vault",
+          "writable": true,
+          "address": "MagicVau1t999999999999999999999999999999999"
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PlayerRecord",
+      "discriminator": [
+        219,
+        240,
+        186,
+        119,
+        195,
+        187,
+        19,
+        160
+      ]
+    },
+    {
+      "name": "Seat",
+      "discriminator": [
+        90,
+        228,
+        22,
+        90,
+        162,
+        86,
+        173,
+        26
+      ]
+    },
+    {
+      "name": "Table",
+      "discriminator": [
+        34,
+        100,
+        138,
+        97,
+        236,
+        129,
+        230,
+        112
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "BadSeat",
+      "msg": "Seat index out of range"
+    },
+    {
+      "code": 6001,
+      "name": "BadSuit",
+      "msg": "Suit out of range"
+    },
+    {
+      "code": 6002,
+      "name": "BadSide",
+      "msg": "Side must be 0 (bid) or 1 (ask)"
+    },
+    {
+      "code": 6003,
+      "name": "BadPrice",
+      "msg": "Price must be 1..=99"
+    },
+    {
+      "code": 6004,
+      "name": "NotSeatOwner",
+      "msg": "Signer does not own this seat"
+    },
+    {
+      "code": 6005,
+      "name": "TradingClosed",
+      "msg": "Trading is closed"
+    },
+    {
+      "code": 6006,
+      "name": "NoCard",
+      "msg": "Seller does not hold a card of that suit"
+    },
+    {
+      "code": 6007,
+      "name": "NoChips",
+      "msg": "Buyer does not hold enough chips"
+    },
+    {
+      "code": 6008,
+      "name": "SelfCross",
+      "msg": "Quote would cross your own quote"
+    },
+    {
+      "code": 6009,
+      "name": "SelfTrade",
+      "msg": "Cannot trade against your own quote"
+    },
+    {
+      "code": 6010,
+      "name": "NoQuote",
+      "msg": "No resting quote there"
+    },
+    {
+      "code": 6011,
+      "name": "RoundInProgress",
+      "msg": "Round is in progress"
+    },
+    {
+      "code": 6012,
+      "name": "SeatTaken",
+      "msg": "Seat already taken by a player"
+    },
+    {
+      "code": 6013,
+      "name": "AlreadySeated",
+      "msg": "Signer already sits at this table"
+    },
+    {
+      "code": 6014,
+      "name": "BellTooEarly",
+      "msg": "Trading window has not ended"
+    },
+    {
+      "code": 6015,
+      "name": "NotAllowed",
+      "msg": "Only a seated player or the table creator may do this"
+    },
+    {
+      "code": 6016,
+      "name": "BadWindow",
+      "msg": "Window must be 15..=600 seconds"
+    },
+    {
+      "code": 6017,
+      "name": "AlreadyPublished",
+      "msg": "Records for this round were already published"
+    },
+    {
+      "code": 6018,
+      "name": "SeatMismatch",
+      "msg": "Seat account does not match the table/index"
+    }
+  ],
+  "types": [
+    {
+      "name": "PlayerRecord",
+      "docs": [
+        "Lifetime stats of one wallet. Lives on the base layer, never delegated; written by a",
+        "Magic Action scheduled from the ER after each bell."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "rounds",
+            "type": "u32"
+          },
+          {
+            "name": "orders_filled",
+            "type": "u32"
+          },
+          {
+            "name": "wins",
+            "type": "u32"
+          },
+          {
+            "name": "best_score",
+            "type": "u16"
+          },
+          {
+            "name": "total_score",
+            "type": "u64"
+          },
+          {
+            "name": "last_table",
+            "docs": [
+              "Idempotency key of the last applied result."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "last_round",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RecordEntry",
+      "docs": [
+        "One seat's result as carried by the record action."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "present",
+            "type": "bool"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "score",
+            "type": "u16"
+          },
+          {
+            "name": "filled",
+            "type": "bool"
+          },
+          {
+            "name": "won",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Seat",
+      "docs": [
+        "Private per-seat state: hand, chips and secret order. Readable only by the seat owner",
+        "(ephemeral permission) until the bell flips it public."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "table",
+            "type": "pubkey"
+          },
+          {
+            "name": "index",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "round",
+            "docs": [
+              "Round these cards belong to."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "hand",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "chips",
+            "type": "u16"
+          },
+          {
+            "name": "order_suit_a",
+            "type": "u8"
+          },
+          {
+            "name": "order_qty_a",
+            "type": "u8"
+          },
+          {
+            "name": "order_suit_b",
+            "type": "u8"
+          },
+          {
+            "name": "order_qty_b",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeatInfo",
+      "docs": [
+        "Public roster entry for one seat."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "docs": [
+              "Signer allowed to act for this seat (session key). Default for bots."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "docs": [
+              "Wallet whose base-layer `PlayerRecord` receives this seat's results. Default if none."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Table",
+      "docs": [
+        "Public table state. Delegated to the TEE validator once and reused round after round.",
+        "Zero-copy so the 64-entry tape never lands on the BPF stack."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "table_id",
+            "type": "u64"
+          },
+          {
+            "name": "trade_end_ts",
+            "docs": [
+              "Trading closes at this ER unix timestamp."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "deal_requested_ts",
+            "docs": [
+              "When the current deal's VRF request was sent (for retry after a lost callback)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "last_tick_slot",
+            "docs": [
+              "Last slot a `bot_tick` ran (rate limit for the permissionless tick)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "crank_task_id",
+            "docs": [
+              "Task id of the crank scheduled for the current round."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "round",
+            "type": "u32"
+          },
+          {
+            "name": "trade_count",
+            "docs": [
+              "Total fills ever written to the tape (the ring index is `trade_count % TAPE_LEN`)."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "tick_count",
+            "type": "u32"
+          },
+          {
+            "name": "records_round",
+            "docs": [
+              "Last round whose results were sent to the base-layer player records."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "window_secs",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "phase",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "seats",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "SeatInfo"
+                  }
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "bids",
+            "docs": [
+              "`bids[suit][seat]` resting bid price, 0 = none."
+            ],
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u8",
+                    4
+                  ]
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "asks",
+            "docs": [
+              "`asks[suit][seat]` resting ask price, 0 = none."
+            ],
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u8",
+                    4
+                  ]
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "scores",
+            "docs": [
+              "Filled in by the bell."
+            ],
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "ranks",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "filled",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "tape",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "Trade"
+                  }
+                },
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Trade",
+      "docs": [
+        "One fill on the public tape."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "slot",
+            "type": "u64"
+          },
+          {
+            "name": "unix_ts",
+            "type": "i64"
+          },
+          {
+            "name": "round",
+            "type": "u32"
+          },
+          {
+            "name": "suit",
+            "type": "u8"
+          },
+          {
+            "name": "price",
+            "type": "u8"
+          },
+          {
+            "name": "buyer",
+            "type": "u8"
+          },
+          {
+            "name": "seller",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
